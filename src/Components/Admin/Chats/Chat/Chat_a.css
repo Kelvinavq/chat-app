@@ -1,0 +1,134 @@
+.screen_chat {
+  width: 100%;
+  height: 100%;
+}
+
+.screen_chat .header_chat {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid var(--dark-2);
+}
+
+.screen_chat .header_chat .img {
+  display: grid;
+  place-items: center;
+}
+
+.screen_chat .header_chat .img img {
+  max-width: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.screen_chat .header_chat .content h4,
+.screen_chat .header_chat .content small {
+  margin: 0;
+}
+
+.screen_chat .header_chat .content h4 {
+  color: var(--white);
+  font-weight: 500;
+}
+
+.screen_chat .header_chat .content small.online {
+  color: var(--online);
+}
+
+.screen_chat .header_chat .content small.offline {
+  color: var(--danger);
+}
+
+.screen_chat .chat_area {
+  width: 100%;
+  height: calc(100vh - 130px);
+}
+
+.screen_chat .input_area {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.screen_chat .input_area .input input {
+  width: 100%;
+}
+
+.screen_chat .input_area .buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.screen_chat .input_area .buttons button {
+  width: 40px;
+  height: 40px;
+  background: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chat_area {
+  /* width: 300px; */
+  overflow-y: auto;
+  /* height: 400px; */
+  /* padding: 10px; */
+}
+
+.message {
+  margin-bottom: 10px;
+  clear: both;
+  overflow: hidden;
+}
+
+.sent .message_body {
+  background-color: var(--green);
+  float: right;
+  color: var(--white);
+}
+
+.received .message_body {
+  background-color: var(--gray);
+  float: left;
+  color: var(--white);
+}
+
+.message_body {
+  max-width: 70%;
+  padding: 8px 12px 17px 12px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  position: relative;
+  margin-top: 10px;
+}
+
+.sent .message_body{
+  border-top-right-radius: 0px;
+}
+
+.received .message_body{
+  border-top-left-radius: 0px;
+}
+
+.message_time {
+  font-size: 10px;
+  color: #777;
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+}
+
+.profile_pic {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-left: 8px;
+  float: right;
+}
+
+.received .profile_pic {
+  float: left;
+}

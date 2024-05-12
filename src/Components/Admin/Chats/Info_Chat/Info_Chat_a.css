@@ -1,0 +1,48 @@
+.info_chat {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.info_chat .title {
+  width: 100%;
+  text-align: center;
+}
+
+.info_chat .title h2 {
+  font-size: 1.4em;
+  font-weight: 500;
+  color: var(--white);
+}
+
+.info_chat .img {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.info_chat .img img {
+  max-width: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.info_chat .info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.info_chat .info h4 {
+  margin: 0;
+  font-weight: 500;
+  color: var(--white);
+}

@@ -1,0 +1,343 @@
+.suspendidos_container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+
+.suspendidos_container .inner_container {
+  width: calc(100% - 90px);
+  height: 100%;
+}
+
+.suspends {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 80% 20%;
+}
+
+.suspends .left {
+  width: 100%;
+}
+
+.suspends .right {
+  width: 100%;
+}
+
+.suspends .title {
+  width: 100%;
+}
+
+.suspends .title h2 {
+  font-weight: 500;
+  color: var(--white);
+}
+
+.suspends .buttons {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.suspends .buttons .link {
+  color: var(--gray);
+  font-weight: 400;
+}
+
+.suspends .buttons .link a {
+  color: var(--white);
+}
+
+.suspends .buttons .link.active a {
+  font-weight: 600;
+  color: var(--button);
+}
+
+.suspends .filters {
+  width: 99%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.suspends .filters .input {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  align-items: start;
+}
+
+.suspends .filters .input input {
+  width: calc(100% - 10px);
+}
+
+.suspends .counter {
+  width: 99%;
+}
+
+.suspends .counter h4 {
+  font-weight: 500;
+  color: var(--white);
+}
+
+td.reactivar button {
+  width: 120px !important;
+  max-width: 100% !important;
+  height: 40px !important;
+  padding: 12px 18px !important;
+  background: var(--button) !important;
+}
+
+/* right */
+
+.suspends .right {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.suspends .right .inner_right {
+  width: 98%;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.suspends .inner_right .card {
+  width: 100%;
+  height: auto;
+  min-height: 120px;
+  background: var(--gray);
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.suspends .inner_right .card .inner_card {
+  width: 95%;
+  height: 95%;
+}
+
+.suspends .inner_right .card .inner_card.agent {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.suspends .inner_right .card .inner_card.agent .circle {
+  width: 50px;
+  height: 50px;
+  background: var(--dark);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--white);
+  font-size: 1.4em;
+}
+
+.suspends .inner_right .card .inner_card.agent .circle img {
+  max-width: 45px;
+  object-fit: cover;
+}
+
+.suspends .inner_right .card .inner_card.agent .content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.suspends .inner_right .card .inner_card.agent .content p {
+  margin: 0;
+  color: var(--white);
+  font-size: 0.9em;
+}
+
+.suspends .inner_right .card .inner_card.agent .content span {
+  padding: 5px 10px;
+  font-size: 0.9em;
+  font-weight: 500;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+.suspends .inner_right .card .inner_card.agent .content span.admin {
+  background: var(--dark);
+}
+
+.suspends .inner_right .card .inner_card.agent .content span.agent {
+  background: var(--button);
+}
+
+.suspends .inner_right .card .inner_card.agent .content p:first-child {
+  font-weight: 500;
+  font-size: 1em;
+}
+
+.suspends .inner_right .card .inner_card.agent .content p:last-child {
+  font-size: 0.9em;
+}
+
+.suspends .inner_right .card .inner_card.team .title {
+  width: 100%;
+}
+
+.suspends .inner_right .card .inner_card.team .title h4 {
+  font-weight: 500;
+  color: var(--white);
+}
+
+.suspends .inner_right .card .inner_card.team .grid {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  place-content: center;
+  grid-template-columns: 1fr 1fr;
+  padding-bottom: 20px;
+  color: var(--white);
+}
+
+.suspends .inner_right .card .inner_card.team .grid .left,
+.suspends .inner_right .card .inner_card.team .grid .right {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suspends .inner_right .card .inner_card.team .grid .item {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.suspends .inner_right .card .inner_card.team .grid .item .circle {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--white);
+  border-radius: 5px;
+  padding-top: 1px;
+}
+
+.suspends .inner_right .card .inner_card.team .item:nth-child(4n + 1) .circle {
+  background: var(--dark);
+}
+
+.suspends .inner_right .card .inner_card.team .item:nth-child(4n + 2) .circle {
+  background: var(--button);
+}
+
+.suspends .inner_right .card .inner_card.team .item:nth-child(4n + 3) .circle {
+  background: var(--green-2);
+}
+
+.suspends .inner_right .card .inner_card.team .item:nth-child(4n + 4) .circle {
+  background: var(--primary);
+}
+
+.suspends .inner_right .card .inner_card.metrics .title {
+  width: 100%;
+  color: var(--white);
+}
+
+.suspends .inner_right .card .inner_card.metrics .title h4 {
+  font-weight: 500;
+}
+
+.suspends .inner_right .card .inner_card.metrics .list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 0 0 20px 0;
+}
+
+.suspends .inner_right .card .inner_card.metrics .list .item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.suspends .inner_right .card .inner_card.metrics .list .item:hover span,
+.suspends .inner_right .card .inner_card.metrics .list .item:hover svg,
+.suspends .inner_right .card .inner_card.metrics .list .item:hover .content p {
+  color: var(--primary);
+}
+
+.suspends .inner_right .card .inner_card.metrics .list .item .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+}
+
+.suspends .inner_right .card .inner_card.metrics .list .item .icon span {
+  margin-left: 10px;
+  font-size: 0.9em;
+}
+
+.suspends .inner_right .card .inner_card.metrics .list .item .content p {
+  margin: 0;
+  color: var(--white);
+}
+
+@media (max-width: 1700px) {
+  .suspends {
+    grid-template-columns: 70% 30%;
+  }
+}
+
+@media (max-width: 1400px) {
+  .suspends {
+    grid-template-columns: 70% 30%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .suspends {
+    grid-template-columns: 60% 40%;
+  }
+}
+
+@media (max-width: 920px) {
+  .suspendidos_container .inner_container {
+    width: 99%;
+    height: 100%;
+  }
+  .suspendidos_container {
+    margin-bottom: 150px;
+  }
+
+  .suspends {
+    grid-template-columns: 1fr;
+  }
+  .suspends .right {
+    display: none;
+  }
+
+  td.name .circle {
+    display: none;
+  }
+
+  td.name .content {
+    align-items: end;
+  }
+}
