@@ -2,7 +2,10 @@
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
-const socketio = require("socket.io");
+// const socketio = require("socket.io");
+const chatController = require("./controllers/chatController");
+const db = require("./Config/database");
+const socket = require('./Config/socket');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -10,7 +13,9 @@ const PORT = process.env.PORT || 4000;
 // Crear el servidor HTTP
 const server = http.createServer(app);
 
-const io = socketio(server);
+// Configuración del WebSocket
+const io = socket.init(server);
+
 
 // Middleware para el análisis del cuerpo de las solicitudes JSON
 app.use(express.json());
@@ -32,21 +37,35 @@ app.use((err, req, res, next) => {
 
 // Configuración del WebSocket
 io.on("connection", (socket) => {
-    console.log("New WebSocket connection");
-    // Aquí puedes manejar eventos de Socket.IO
-  });
-  
-  // Manejar solicitudes de Socket.IO
-  app.get("/socket.io/", (req, res) => {
-    // Devolver una respuesta indicando que Socket.IO está disponible
-    res.send("Socket.IO is running");
+  console.log("New WebSocket connection");
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
   });
 
+  socket.on("sendMessage", async (data) => {
+    console.log("New message:", data);
+    try {
+      // Extraer datos del objeto data
+      const { clientId, option, team_id } = data;
+      // Llamar al controlador para manejar el mensaje
+      await chatController.createChat({ clientId, option, team_id });
+    } catch (error) {
+      console.error("Error handling socket message:", error);
+    }
+  });
+});
+
+// Manejar solicitudes de Socket.IO
+app.get("/socket.io/", (req, res) => {
+  // Devolver una respuesta indicando que Socket.IO está disponible
+  res.send("Socket.IO is running");
+});
+
 // Iniciar el servidor
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-// Exporta el servidor para que pueda ser utilizado en otras partes de la aplicación
+// Exportar el servidor para que pueda ser utilizado en otras partes de la aplicación
 module.exports = { server };
-

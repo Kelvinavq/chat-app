@@ -22,19 +22,19 @@ const Chat_a = ({ selectedClientId }) => {
         </div>
 
         <div className="chat_area">
-          <div class="message sent">
-            <img src={img} alt="Profile Pic" class="profile_pic" />
-            <div class="message_body">
+          <div className="message sent">
+            <img src={img} alt="Profile Pic" className="profile_pic" />
+            <div className="message_body">
               Hello, how are you?
-              <span class="message_time">10:00 AM</span>
+              <span className="message_time">10:00 AM</span>
             </div>
           </div>
 
-          <div class="message received">
-            <img src={img} alt="Profile Pic" class="profile_pic" />
-            <div class="message_body">
+          <div className="message received">
+            <img src={img} alt="Profile Pic" className="profile_pic" />
+            <div className="message_body">
               I'm good, thank you!
-              <span class="message_time">10:05 AM</span>
+              <span className="message_time">10:05 AM</span>
             </div>
           </div>
         </div>
