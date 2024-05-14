@@ -25,6 +25,9 @@ const Bubble_Chat = () => {
   const [password, setPassword] = useState("");
   const [clientInfo, setClientInfo] = useState(null);
   const [chatId, setChatId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [messageInput, setMessageInput] = useState("");
+  const [teams, setTeams] = useState([]);
 
   const handleCloseChat = () => {
     setShowChat(false);
@@ -35,6 +38,7 @@ const Bubble_Chat = () => {
     checkClientRegistration();
     checkLastChatStatus();
     getClientInfo();
+    getTeamList();
 
     // Listener para manejar los mensajes recibidos del servidor
     socket.on("newMessage", (data) => {
@@ -91,9 +95,10 @@ const Bubble_Chat = () => {
 
       if (response.ok) {
         const data = await response.json();
+
         if (data.isLastChatActive) {
           // Si el último chat está activo, actualiza chatId con el ID del último chat
-          setChatId(data.lastChatId);
+          setChatId(data.chatId);
         } else {
           // Si el último chat está inactivo, actualiza chatId a null
           setChatId(null);
@@ -104,6 +109,31 @@ const Bubble_Chat = () => {
       }
     } catch (error) {
       console.error("Error checking last chat status:", error);
+    }
+  };
+
+  const getTeamList = async () => {
+    try {
+      const url = new URL(`http://localhost:4000/api/chats/list-team`);
+
+      const response = await fetch(url, {
+        method: "GET",
+        mode: "cors",
+        credentials: "include",
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data) {
+          setTeams(data.teams);
+        }
+      }
+    } catch (error) {
+      console.error("Error al obtener los equipos:", error);
     }
   };
 
@@ -125,8 +155,14 @@ const Bubble_Chat = () => {
       if (response.ok) {
         const clientData = await response.json();
         setClientInfo(clientData);
+      } else if (response.status === 404) {
+        // Manejar el caso en el que no se encuentra el cliente
+        console.error("Client not found");
+        // Mostrar un mensaje de error o redirigir a una página de error
       } else {
-        throw new Error("Failed to get client info");
+        // Otros errores de la solicitud
+        console.error("Error getting client info:", response.statusText);
+        // Mostrar un mensaje de error o redirigir a una página de error
       }
     } catch (error) {
       console.error("Error getting client info:", error);
@@ -189,10 +225,11 @@ const Bubble_Chat = () => {
     }
   };
 
-  const handleOptionClick = async (option) => {
+  const handleOptionClick = async (id, option) => {
     try {
       // Obtener el ID del cliente
       const clientId = clientInfo.clientInfo.id;
+
 
       // Registrar un nuevo chat y mensaje en la base de datos
       const response = await fetch(
@@ -206,6 +243,7 @@ const Bubble_Chat = () => {
           body: JSON.stringify({
             clientId: clientId,
             option: option,
+            team_id: id,
           }),
         }
       );
@@ -213,6 +251,10 @@ const Bubble_Chat = () => {
       if (response.ok) {
         const data = await response.json();
         setChatId(data.chatId);
+
+        // Cargar automáticamente los mensajes después de establecer el chatId
+        loadChatMessages(data.chatId);
+        setIsLastChatActive(true);
 
         // Emitir el mensaje al servidor
         socket.emit("sendMessage", {
@@ -247,7 +289,7 @@ const Bubble_Chat = () => {
 
   const handleSendMessage = async () => {
     try {
-      const message = "Mensaje a enviar";
+      const message = messageInput;
       const chat_id = chatId;
       const senderId = clientInfo.clientInfo.id;
 
@@ -265,7 +307,7 @@ const Bubble_Chat = () => {
 
       // Enviar el mensaje al servidor para su registro en la base de datos
       const response = await fetch(
-        "http://localhost:4000/api/messages/create",
+        "http://localhost:4000/api/chats/messages/create",
         {
           method: "POST",
           credentials: "include",
@@ -285,12 +327,58 @@ const Bubble_Chat = () => {
         throw new Error("Failed to send message");
       } else {
         socket.emit("sendMessage", { chatId, senderId, message });
+        // Limpiar el textarea después de enviar el mensaje
+        setMessageInput("");
+
+        // Actualizar el estado de los mensajes con el nuevo mensaje enviado
+        setMessages([...messages, { sender_id: senderId, message: message }]);
       }
     } catch (error) {
       console.error("Error sending message:", error);
       // Manejar el error apropiadamente
     }
   };
+
+  // Función para obtener todos los mensajes de un chat activo
+  const fetchChatMessages = async (chatId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/chats/${chatId}/messages`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        return data.messages; // Suponiendo que el backend devuelve un arreglo de mensajes
+      } else if (response.status === 404) {
+        console.error("No messages found for the chat");
+        return [];
+      } else {
+        console.error("Error fetching chat messages:", response.statusText);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+      return [];
+    }
+  };
+
+  // Función para cargar los mensajes del chat activo al abrir la burbuja de chat
+  const loadChatMessages = async (chatId) => {
+    const messages = await fetchChatMessages(chatId);
+    setMessages(messages);
+  };
+
+  useEffect(() => {
+    if (chatId) {
+      loadChatMessages(chatId);
+    }
+  }, [chatId]);
 
   return (
     <>
@@ -378,25 +466,34 @@ const Bubble_Chat = () => {
                     </div>
 
                     <div className="options">
-                      <button
-                        className="option message new"
-                        onClick={() => handleOptionClick("Recargar fichas")}
-                      >
-                        Recargar fichas
-                      </button>
-                      <button
-                        className="option message new"
-                        onClick={() => handleOptionClick("Retirar")}
-                      >
-                        Retirar
-                      </button>
-                      <button
-                        className="option message new"
-                        onClick={() => handleOptionClick("Soporte")}
-                      >
-                        Soporte
-                      </button>
+                      {teams.map((team) => (
+                        <button
+                          className="option message new"
+                          key={team.id}
+                          onClick={() => handleOptionClick(team.id, team.name)}
+                        >
+                          {team.name}
+                        </button>
+                      ))}
                     </div>
+                  </>
+                )}
+
+                {isLastChatActive && (
+                  <>
+                    {messages.map((message, index) => (
+                      <div
+                        key={index}
+                        className={`message ${
+                          message.sender_id === clientInfo.clientInfo.id
+                            ? "message-personal"
+                            : ""
+                        } new`}
+                      >
+                        <p>{message.message}</p>
+                        <div className="timestamp"></div>
+                      </div>
+                    ))}
                   </>
                 )}
               </div>
@@ -407,7 +504,8 @@ const Bubble_Chat = () => {
                     type="text"
                     className="message-input"
                     placeholder="Escribe un mensaje..."
-                    onChange={handleMessageInputChange}
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
                     onKeyDown={handleMessageInputKeyDown}
                   ></textarea>
                 </div>
