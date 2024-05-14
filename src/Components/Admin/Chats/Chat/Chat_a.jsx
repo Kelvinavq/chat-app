@@ -5,8 +5,34 @@ import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 
 import io from "socket.io-client";
+const socket = io("http://localhost:4000");
 
-const Chat_a = ({ selectedClientId }) => {
+const Chat_a = ({ selectedChat, messages, setMessages }) => {
+
+  useEffect(() => {
+    if (selectedChat) {
+      socket.emit("joinChat", selectedChat.id);
+
+      // Escuchar nuevos mensajes en tiempo real
+      socket.on("newMessage", (messageData) => {
+        if (messageData.chatId === selectedChat.id) {
+          setMessages((prevMessages) => [...prevMessages, messageData]);
+        }
+      });
+    }
+
+    // Limpiar la subscripción al desmontar el componente
+    return () => {
+      socket.off("newMessage");
+    };
+  }, [selectedChat]);
+
+  if (!selectedChat) {
+    return <div className="screen_chat">Seleccione un chat para comenzar</div>;
+  }
+
+ 
+
   return (
     <>
       <div className="screen_chat">
@@ -16,27 +42,26 @@ const Chat_a = ({ selectedClientId }) => {
           </div>
 
           <div className="content">
-            <h4>Usuario</h4>
-            <small className="online">En linea</small>
+            <h4>{selectedChat.username}</h4>
+            <small className="online">{selectedChat.isOnline ? "En linea" : "Desconectado"}</small>
           </div>
         </div>
 
         <div className="chat_area">
-          <div className="message sent">
-            <img src={img} alt="Profile Pic" className="profile_pic" />
-            <div className="message_body">
-              Hello, how are you?
-              <span className="message_time">10:00 AM</span>
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`message ${
+                message.senderId === selectedChat ? "sent" : "received"
+              }`}
+            >
+              {/* <img src={img} alt="Profile Pic" className="profile_pic" /> */}
+              <div className="message_body">
+                {message.message}
+                <span className="message_time">{message.time}</span>
+              </div>
             </div>
-          </div>
-
-          <div className="message received">
-            <img src={img} alt="Profile Pic" className="profile_pic" />
-            <div className="message_body">
-              I'm good, thank you!
-              <span className="message_time">10:05 AM</span>
-            </div>
-          </div>
+          ))}
         </div>
 
         <div className="input_area">

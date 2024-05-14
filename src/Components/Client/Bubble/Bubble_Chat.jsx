@@ -42,7 +42,8 @@ const Bubble_Chat = () => {
 
     // Listener para manejar los mensajes recibidos del servidor
     socket.on("newMessage", (data) => {
-      // Maneja el mensaje recibido
+      // Agrega el nuevo mensaje recibido al estado
+      setMessages((prevMessages) => [...prevMessages, data.message]);
       console.log("New message received:", data);
     });
 
@@ -51,6 +52,8 @@ const Bubble_Chat = () => {
       socket.off("newMessage");
     };
   }, [isLastChatActive]);
+
+
 
   const checkClientRegistration = async () => {
     try {
@@ -70,6 +73,9 @@ const Bubble_Chat = () => {
       if (response.ok) {
         const data = await response.json();
         setIsRegistered(data.isRegistered);
+        // Emitir evento de cliente en línea
+        socket.emit("clientOnline", data.clientId);
+
       } else {
         throw new Error("Failed to check client registration");
       }
@@ -213,6 +219,7 @@ const Bubble_Chat = () => {
 
         // Guardar el deviceId en localStorage
         localStorage.setItem("deviceId", deviceId);
+        window.location.reload();
       } else {
         throw new Error("Registration failed");
       }
@@ -230,12 +237,11 @@ const Bubble_Chat = () => {
       // Obtener el ID del cliente
       const clientId = clientInfo.clientInfo.id;
 
-
       // Registrar un nuevo chat y mensaje en la base de datos
       const response = await fetch(
         "http://localhost:4000/api/chats/create-chat",
         {
-          method: "POST",
+          method: "post",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
@@ -248,6 +254,8 @@ const Bubble_Chat = () => {
         }
       );
 
+      console.log("response:" + response.status);
+
       if (response.ok) {
         const data = await response.json();
         setChatId(data.chatId);
@@ -256,7 +264,6 @@ const Bubble_Chat = () => {
         loadChatMessages(data.chatId);
         setIsLastChatActive(true);
 
-        // Emitir el mensaje al servidor
         socket.emit("sendMessage", {
           chatId: data.chatId,
           senderId: clientId,
@@ -265,8 +272,6 @@ const Bubble_Chat = () => {
       } else {
         throw new Error("Failed to create chat and message");
       }
-
-      // Si todo salió bien, actualiza el estado o realiza cualquier otra acción necesaria
     } catch (error) {
       console.error("Error creating chat and message:", error);
       // Manejar el error apropiadamente

@@ -76,7 +76,12 @@ exports.checkRegistration = async (req, res) => {
 
       // Verificar si se encontraron resultados
       const isRegistered = deviceRows.length > 0;
-      res.status(200).json({ isRegistered });
+
+    // Obtener el client_id del primer resultado
+    const clientId = isRegistered ? deviceRows[0].client_id : null;
+
+
+      res.status(200).json({ isRegistered, clientId  });
     });
   } catch (error) {
     console.error("Error checking client registration:", error);

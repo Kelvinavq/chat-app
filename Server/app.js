@@ -40,19 +40,23 @@ io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected");
+    if (socket.clientId) {
+      console.log(`Client ${socket.clientId} disconnected`);
+      io.emit("updateUserStatus", { clientId: socket.clientId, isOnline: false });
+    } else {
+      console.log("Client disconnected");
+    }
+  });
+
+  socket.on("clientOnline", (clientId) => {
+    socket.clientId = clientId; 
+    console.log(`Client ${clientId} is online`);
+    io.emit("updateUserStatus", { clientId, isOnline: true });
   });
 
   socket.on("sendMessage", async (data) => {
     console.log("New message:", data);
-    try {
-      // Extraer datos del objeto data
-      const { clientId, option, team_id } = data;
-      // Llamar al controlador para manejar el mensaje
-      await chatController.createChat({ clientId, option, team_id });
-    } catch (error) {
-      console.error("Error handling socket message:", error);
-    }
+
   });
 });
 

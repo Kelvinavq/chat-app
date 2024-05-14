@@ -8,10 +8,11 @@ const socket = io("http://localhost:4000");
 
 import Config from "../../../../Config/Config";
 
-const List_chat = () => {
+const List_chat = ({ onChatClick }) => {
   const [chats, setChats] = useState([]);
+  const [onlineStatus, setOnlineStatus] = useState({});
 
-  useEffect(() => {
+ useEffect(() => {
     // Realizar la solicitud GET al backend para obtener la lista de chats
     fetch(`http://localhost:4000/api/chats/list`)
       .then((response) => response.json())
@@ -22,15 +23,22 @@ const List_chat = () => {
         console.error("Error fetching chat list:", error);
       });
 
-      socket.on("newChatNotification", (chatData) => {
-        setChats((prevChats) => [...prevChats, chatData]);
-      });
-  
-      // Limpiar el listener al desmontar el componente
-      return () => {
-        socket.off("newChatNotification");
-      };
+    socket.on("newChatNotification", (chatData) => {
+      setChats((prevChats) => [chatData, ...prevChats]);
+    });
+
+    socket.on("updateUserStatus", ({ clientId, isOnline }) => {
+      setOnlineStatus((prevStatus) => ({ ...prevStatus, [clientId]: isOnline }));
+    });
+
+
+    // Limpiar el listener al desmontar el componente
+    return () => {
+      socket.off("newChatNotification");
+      socket.off("updateUserStatus");
+    };
   }, []);
+
 
   return (
     <>
@@ -44,7 +52,7 @@ const List_chat = () => {
 
         <div className="items">
           {chats.map((chat) => (
-            <div key={chat.id} className="item">
+            <div key={chat.id} className="item" onClick={() => onChatClick(chat)}>
               <div className="img">
                 <img src={img} alt="" />
               </div>
