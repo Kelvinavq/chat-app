@@ -15,10 +15,10 @@ const Form_Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prevFormData) => ({
+      ...prevFormData,
       [name]: value,
-    });
+    }));
   };
 
   const validateForm = () => {
@@ -50,6 +50,43 @@ const Form_Login = () => {
     if (!validateForm()) {
       return;
     }
+
+    try {
+      const response = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        // Si la solicitud fue exitosa, obtiene el token JWT del cuerpo de la respuesta
+        const { token } = await response.json();
+
+        // Guarda el token JWT en el almacenamiento local
+        localStorage.setItem("token", token);
+
+        window.location = "/admin/chats";
+      } else {
+        // Si la solicitud falló, muestra un mensaje de error
+        const { message } = await response.json();
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: message,
+        });
+      }
+    } catch (error) {
+      // Si hay un error en la solicitud, muestra un mensaje de error genérico
+      console.error("Error en la solicitud de inicio de sesión:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error en la solicitud de inicio de sesión",
+      });
+    }
   };
 
   return (
@@ -76,6 +113,7 @@ const Form_Login = () => {
                 type="email"
                 id="email"
                 placeholder="name@mail.com"
+                name="email"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -90,6 +128,7 @@ const Form_Login = () => {
                 type="password"
                 id="password"
                 placeholder="Contraseña"
+                name="password"
                 value={formData.password}
                 onChange={handleChange}
               />

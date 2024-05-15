@@ -142,6 +142,7 @@ Messages
   color: var(--dark);
   overflow: hidden;
   position: relative;
+  overflow-y: auto;
   width: 100%;
 }
 
@@ -155,7 +156,8 @@ Messages
   overflow-y: auto;
 }
 
-.messages .messages-content::-webkit-scrollbar {
+.messages .messages-content::-webkit-scrollbar,
+.messages::-webkit-scrollbar {
   width: 0;
   height: 0;
 }

@@ -29,6 +29,7 @@ exports.createChat = async (req) => {
           await new Promise((resolve, reject) => {
             db.query(messageQuery, [chatId, clientId, option], (err) => {
               if (err) return db.rollback(() => reject(err));
+              
               resolve();
             });
           });

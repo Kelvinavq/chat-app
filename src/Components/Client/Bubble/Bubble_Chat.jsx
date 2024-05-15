@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Config from "../../../Config/Config";
 import "./Bubble.css";
 import img from "../../../assets/logo.png";
@@ -29,6 +29,8 @@ const Bubble_Chat = () => {
   const [messageInput, setMessageInput] = useState("");
   const [teams, setTeams] = useState([]);
 
+  const endOfMessagesRef = useRef(null);
+
   const handleCloseChat = () => {
     setShowChat(false);
   };
@@ -53,7 +55,12 @@ const Bubble_Chat = () => {
     };
   }, [isLastChatActive]);
 
-
+  useEffect(() => {
+    // Desplazarse al final de los mensajes cuando se actualicen
+    if (endOfMessagesRef.current) {
+      endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   const checkClientRegistration = async () => {
     try {
@@ -75,7 +82,6 @@ const Bubble_Chat = () => {
         setIsRegistered(data.isRegistered);
         // Emitir evento de cliente en línea
         socket.emit("clientOnline", data.clientId);
-
       } else {
         throw new Error("Failed to check client registration");
       }
@@ -484,23 +490,23 @@ const Bubble_Chat = () => {
                   </>
                 )}
 
-                {isLastChatActive && (
-                  <>
-                    {messages.map((message, index) => (
-                      <div
-                        key={index}
-                        className={`message ${
-                          message.sender_id === clientInfo.clientInfo.id
-                            ? "message-personal"
-                            : ""
-                        } new`}
-                      >
-                        <p>{message.message}</p>
-                        <div className="timestamp"></div>
-                      </div>
-                    ))}
-                  </>
-                )}
+                {isLastChatActive &&
+                  messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`message ${
+                        message.sender_id === clientInfo.clientInfo.id
+                          ? "message-personal"
+                          : ""
+                      } new`}
+                    >
+                      <p>{message.message}</p>
+                      <div className="timestamp"></div>
+                      {index === messages.length - 1 && (
+                        <div ref={endOfMessagesRef}></div>
+                      )}
+                    </div>
+                  ))}
               </div>
 
               <div className="message-box">

@@ -19,7 +19,6 @@ const Add_user_modal = ({ teams, onClose, onSubmit }) => {
 
   const handleAgentFormSubmit = async (event) => {
     event.preventDefault();
-    // Validar campos
     const formValid = validateForm();
     if (formValid) {
       onSubmit(newAgentData);
@@ -31,13 +30,11 @@ const Add_user_modal = ({ teams, onClose, onSubmit }) => {
     const { username, email, password } = newAgentData;
     const newErrors = {};
 
-    // Validar campo de nombre de usuario
     if (!username) {
       newErrors.username = "El nombre de usuario es obligatorio.";
       formIsValid = false;
     }
 
-    // Validar campo de correo electrónico
     if (!email) {
       newErrors.email = "El correo electrónico es obligatorio.";
       formIsValid = false;
@@ -46,7 +43,6 @@ const Add_user_modal = ({ teams, onClose, onSubmit }) => {
       formIsValid = false;
     }
 
-    // Validar campo de contraseña
     if (!password) {
       newErrors.password = "La contraseña es obligatoria.";
       formIsValid = false;
@@ -55,9 +51,7 @@ const Add_user_modal = ({ teams, onClose, onSubmit }) => {
       formIsValid = false;
     }
 
-    // Actualizar el estado de los errores
     setErrors(newErrors);
-
     return formIsValid;
   };
 
@@ -169,8 +163,8 @@ const Add_user_modal = ({ teams, onClose, onSubmit }) => {
               >
                 <option value="">Selecciona un equipo</option>
                 {teams.map((team) => (
-                  <option key={team.id} value={team.team_name}>
-                    {team.team_name}
+                  <option key={team.id} value={team.id}>
+                    {team.name}
                   </option>
                 ))}
               </select>

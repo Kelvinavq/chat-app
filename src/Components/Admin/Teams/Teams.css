@@ -99,6 +99,7 @@ td.name .circle {
   border-radius: 50%;
   display: grid;
   place-items: center;
+  text-transform: uppercase;
 }
 
 td.name .content {
@@ -116,8 +117,11 @@ td.name .content span {
   font-size: 0.8em;
 }
 
-td.status span {
+td.status.active {
   color: var(--online);
+}
+td.status.inactive {
+  color: var(--danger);
 }
 
 /* right */
@@ -377,4 +381,46 @@ td.status span {
   td.name .content {
     align-items: end;
   }
+}
+
+.equipos td {
+  position: relative;
+  overflow: visible !important;
+}
+
+.equipos .dropdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.equipos .dropdown .dropdown-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 120px;
+  gap: 12px;
+  right: 90px;
+  top: 30px;
+
+  height: auto;
+  background: var(--dark);
+  box-shadow: var(--shadow);
+  border-radius: 15px;
+  z-index: 9;
+  padding: 10px;
+}
+
+.equipos .dropdown .dropdown-content button {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
 }

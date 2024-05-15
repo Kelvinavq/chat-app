@@ -28,9 +28,7 @@ const Agents_a = () => {
   useEffect(() => {
     const obtenerEquipos = async () => {
       try {
-        const url = new URL(`${Config.backend_php_admin}get_teams_active.php`);
-
-        const response = await fetch(url, {
+        const response = await fetch(`http://localhost:4000/api/teams`, {
           method: "GET",
           mode: "cors",
           credentials: "include",
@@ -45,16 +43,26 @@ const Agents_a = () => {
           if (data) {
             setTeams(data);
           } else {
-            // Manejar el caso en que no hay equipos
             Swal.fire({
               icon: "info",
               title: "Sin equipos registrados",
               text: "No hay equipos registrados en este momento.",
             });
           }
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Error al obtener los equipos. Inténtalo de nuevo más tarde.",
+          });
         }
       } catch (error) {
         console.error("Error al obtener los equipos:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Error al obtener los equipos. Inténtalo de nuevo más tarde.",
+        });
       }
     };
 
@@ -62,7 +70,6 @@ const Agents_a = () => {
   }, []);
 
   const handleAddAgentClick = () => {
-    // Verificar si hay equipos registrados
     if (Teams.length === 0) {
       Swal.fire({
         icon: "error",
@@ -73,15 +80,13 @@ const Agents_a = () => {
         },
       });
     } else {
-      // Abrir el modal para agregar agente
       setShowAddAgentModal(true);
     }
   };
 
   const handleAgentFormSubmit = async (newAgentData) => {
     try {
-      // Realizar la solicitud para agregar el agente
-      const response = await fetch(`${Config.backend_php_admin}add_user.php`, {
+      const response = await fetch(`http://localhost:4000/api/agents/register`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -91,7 +96,6 @@ const Agents_a = () => {
       });
 
       if (response.ok) {
-        // Mostrar mensaje de éxito
         Swal.fire({
           icon: "success",
           title: "Éxito",
@@ -101,21 +105,10 @@ const Agents_a = () => {
           },
         });
 
-        // Restablecer los valores del nuevo agente
-        setNewAgentData({
-          username: "",
-          email: "",
-          password: "",
-          role: "",
-          team: "",
-        });
-
-        // Cerrar el modal
         setShowAddAgentModal(false);
       } else {
         const responseData = await response.json();
 
-        // Mostrar mensaje de error si la solicitud falla
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -126,7 +119,6 @@ const Agents_a = () => {
       }
     } catch (error) {
       console.error("Error al agregar el agente:", error);
-      // Mostrar mensaje de error si hay un error en la solicitud
       Swal.fire({
         icon: "error",
         title: "Error",

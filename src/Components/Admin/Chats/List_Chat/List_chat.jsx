@@ -12,7 +12,20 @@ const List_chat = ({ onChatClick }) => {
   const [chats, setChats] = useState([]);
   const [onlineStatus, setOnlineStatus] = useState({});
 
- useEffect(() => {
+  useEffect(() => {
+    socket.on("updateUserStatus", (data) => {
+      setOnlineStatus((prevStatus) => ({
+        ...prevStatus,
+        [data.clientId]: data.isOnline,
+      }));
+    });
+
+    return () => {
+      socket.off("updateUserStatus");
+    };
+  }, []);
+
+  useEffect(() => {
     // Realizar la solicitud GET al backend para obtener la lista de chats
     fetch(`http://localhost:4000/api/chats/list`)
       .then((response) => response.json())
@@ -28,9 +41,11 @@ const List_chat = ({ onChatClick }) => {
     });
 
     socket.on("updateUserStatus", ({ clientId, isOnline }) => {
-      setOnlineStatus((prevStatus) => ({ ...prevStatus, [clientId]: isOnline }));
+      setOnlineStatus((prevStatus) => ({
+        ...prevStatus,
+        [clientId]: isOnline,
+      }));
     });
-
 
     // Limpiar el listener al desmontar el componente
     return () => {
@@ -39,6 +54,10 @@ const List_chat = ({ onChatClick }) => {
     };
   }, []);
 
+  const handleChatClick = (chatId) => {
+    // Lógica para manejar el clic en un chat específico
+    onChatClick(chatId);
+  };
 
   return (
     <>
@@ -52,7 +71,11 @@ const List_chat = ({ onChatClick }) => {
 
         <div className="items">
           {chats.map((chat) => (
-            <div key={chat.id} className="item" onClick={() => onChatClick(chat)}>
+            <div
+              key={chat.id}
+              className="item"
+              onClick={() => onChatClick(chat)}
+            >
               <div className="img">
                 <img src={img} alt="" />
               </div>
