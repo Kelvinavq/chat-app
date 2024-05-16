@@ -17,6 +17,31 @@ class Team {
     });
   }
 
+  static getAllTeamsWithUserStatus(id) {
+    return new Promise((resolve, reject) => {
+      db.query(
+        `SELECT 
+           t.id,
+           t.name,
+           t.registration_date,
+           t.status,
+           IF(ut.user_id IS NOT NULL, true, false) as isChecked
+         FROM teams t
+         LEFT JOIN user_teams ut ON t.id = ut.team_id AND ut.user_id = ? 
+         WHERE t.status = "active"`,
+        [id],
+        (error, results) => {
+          if (error) {
+            reject(new Error("Error al obtener los equipos con el estado del usuario"));
+          } else {
+            resolve(results);
+          }
+        }
+      );
+    });
+  }
+  
+
   static getAllTeamsWithInfo() {
     return new Promise((resolve, reject) => {
       const query = `
@@ -121,6 +146,31 @@ class Team {
       });
     });
   }
+
+  static async updateUser(id, userData) {
+    const fields = [];
+    const values = [];
+  
+    for (const [key, value] of Object.entries(userData)) {
+      fields.push(`${key} = ?`);
+      values.push(value);
+    }
+    values.push(id);
+  
+    const query = `UPDATE users SET ${fields.join(", ")} WHERE id = ?`;
+    return db.query(query, values);
+  }
+  
+  static async updateUserTeams(userId, teams) {
+    // Primero, eliminar todos los equipos asociados al usuario
+    await db.query("DELETE FROM user_teams WHERE user_id = ?", [userId]);
+  
+    // Luego, agregar los nuevos equipos
+    const teamInserts = teams.map(teamId => [userId, teamId]);
+    return db.query("INSERT INTO user_teams (user_id, team_id) VALUES ?", [teamInserts]);
+  }
+
+  
 }
 
 module.exports = Team;

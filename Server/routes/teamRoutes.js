@@ -23,5 +23,10 @@ router.put('/teams/:id/enable', TeamController.enableTeam);
 // Ruta para editar el nombre de un equipo
 router.put('/teams/:id/edit-name', TeamController.editTeamName);
 
+// Ruta para obtener los equipos al que pertenece un usuario
+router.get('/teams/get-teams-user/:id', TeamController.getAllTeamsWithUserStatus);
+
+// Ruta para actualizar usuario y equipos asociados
+router.put('/teams/update/:id', TeamController.updateUserWithTeams);
 
 module.exports = router;

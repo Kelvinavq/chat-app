@@ -1,5 +1,6 @@
 const db = require("../Config/database");
 const bcrypt = require("bcrypt");
+const Agent = require("../models/agent");
 
 class AgentController {
   // Método para registrar un nuevo agente
@@ -9,7 +10,9 @@ class AgentController {
 
       // Validar que se reciban todos los datos necesarios
       if (!username || !email || !password || !role || !team) {
-        return res.status(400).json({ message: "Todos los campos son obligatorios." });
+        return res
+          .status(400)
+          .json({ message: "Todos los campos son obligatorios." });
       }
 
       // Iniciar una transacción
@@ -46,7 +49,9 @@ class AgentController {
 
             if (usernameRows.length > 0) {
               return db.rollback(() => {
-                res.status(400).json({ message: "El nombre de usuario ya está en uso." });
+                res
+                  .status(400)
+                  .json({ message: "El nombre de usuario ya está en uso." });
               });
             }
 
@@ -61,7 +66,11 @@ class AgentController {
 
             if (emailRows.length > 0) {
               return db.rollback(() => {
-                res.status(400).json({ message: "El correo electrónico ya está registrado." });
+                res
+                  .status(400)
+                  .json({
+                    message: "El correo electrónico ya está registrado.",
+                  });
               });
             }
 
@@ -69,18 +78,24 @@ class AgentController {
             const hashedPassword = await bcrypt.hash(password, 10);
 
             // Insertar el nuevo usuario en la tabla users
-            const insertUser = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
+            const insertUser =
+              "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
             const userResult = await new Promise((resolve, reject) => {
-              db.query(insertUser, [username, email, hashedPassword, role], (err, results) => {
-                if (err) return reject(err);
-                resolve(results);
-              });
+              db.query(
+                insertUser,
+                [username, email, hashedPassword, role],
+                (err, results) => {
+                  if (err) return reject(err);
+                  resolve(results);
+                }
+              );
             });
 
             const userId = userResult.insertId;
 
             // Insertar el usuario en la tabla user_teams
-            const insertUserTeam = "INSERT INTO user_teams (user_id, team_id) VALUES (?, ?)";
+            const insertUserTeam =
+              "INSERT INTO user_teams (user_id, team_id) VALUES (?, ?)";
             await new Promise((resolve, reject) => {
               db.query(insertUserTeam, [userId, teamId], (err, results) => {
                 if (err) return reject(err);
@@ -91,11 +106,15 @@ class AgentController {
             db.commit((err) => {
               if (err) {
                 return db.rollback(() => {
-                  res.status(500).json({ error: "Error al registrar el agente." });
+                  res
+                    .status(500)
+                    .json({ error: "Error al registrar el agente." });
                 });
               }
 
-              res.status(201).json({ message: "Usuario añadido correctamente." });
+              res
+                .status(201)
+                .json({ message: "Usuario añadido correctamente." });
             });
           } catch (error) {
             db.rollback(() => {
@@ -120,7 +139,50 @@ class AgentController {
     }
   }
 
+  static async getAgentInfoById(req, res) {
+    const { id } = req.params;
+    try {
+      const agentInfo = await Agent.getAgentInfoById(id);
+      if (agentInfo && agentInfo.teams) {
+        // Convertir la cadena de nombres de equipo separada por comas en un array
+        agentInfo.teams = agentInfo.teams.split(",");
+      } else {
+        // Si no se encontró ningún equipo para el ususario, establecer un array vacío
+        agentInfo.teams = [];
+      }
+      res.json(agentInfo);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 
+  static async disableAgent(req, res) {
+    const { id } = req.params;
+    try {
+      // Lógica para actualizar el estado del usuario a "suspendido" en la base de datos
+      await Agent.disableAgent(id);
+      res.status(200).json({ message: "usuario suspendido exitosamente" });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error al suspender el usuario",
+        error: error.message,
+      });
+    }
+  }
+
+  static async enableAgent(req, res) {
+    const { id } = req.params;
+    try {
+      // Lógica para actualizar el estado del ususario a "active" en la base de datos
+      await Agent.enableAgent(id);
+      res.status(200).json({ message: "usuario habilitado exitosamente" });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error al habilitar el usuario",
+        error: error.message,
+      });
+    }
+  }
 }
 
 module.exports = AgentController;

@@ -10,6 +10,16 @@ class TeamController {
     }
   }
 
+  static async getAllTeamsWithUserStatus(req, res) {
+    try {
+      const userId = req.params.id; 
+      const teams = await Team.getAllTeamsWithUserStatus(userId);
+      res.json(teams);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
   static async getAllTeamsWithInfo(req, res) {
     try {
       const teams = await Team.getAllTeamsWithInfo();
@@ -98,6 +108,30 @@ class TeamController {
       res.status(200).json({ message: 'Nombre del equipo actualizado correctamente' });
     } catch (error) {
       res.status(500).json({ message: error.message });
+    }
+  }
+
+  static async updateUserWithTeams(req, res) {
+    const { id } = req.params;
+    const { username, email, password, role, teams } = req.body;
+  
+    try {
+      // Actualizar la información del usuario
+      const userUpdateData = { username, email, role };
+      if (password) {
+        userUpdateData.password = password; // Solo incluir la contraseña si se proporcionó
+      }
+  
+      await User.updateUser(id, userUpdateData);
+  
+      // Actualizar los equipos asociados
+      if (teams && teams.length > 0) {
+        await User.updateUserTeams(id, teams);
+      }
+  
+      res.status(200).json({ message: "Usuario actualizado correctamente" });
+    } catch (error) {
+      res.status(500).json({ message: "Error al actualizar el usuario", error });
     }
   }
 }

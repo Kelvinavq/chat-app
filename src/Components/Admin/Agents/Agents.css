@@ -117,10 +117,10 @@ td.agent span {
   border-radius: 8px;
 }
 
-td.online {
+td.active {
   color: var(--online);
 }
-td.offline {
+td.suspended {
   color: var(--dark-3);
 }
 
@@ -200,11 +200,11 @@ td.offline {
   margin-left: 4px;
 }
 
-.agents .inner_right .card .inner_card.agent .content span.admin{
+.agents .inner_right .card .inner_card.agent .content span.admin {
   background: var(--dark);
 }
 
-.agents .inner_right .card .inner_card.agent .content span.agent{
+.agents .inner_right .card .inner_card.agent .content span.agent {
   background: var(--button);
 }
 
@@ -369,4 +369,46 @@ td.offline {
   td.name .content {
     align-items: end;
   }
+}
+
+.agents td {
+  position: relative;
+  overflow: visible !important;
+}
+
+.agents .dropdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.agents .dropdown .dropdown-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 120px;
+  gap: 12px;
+  right: 90px;
+  top: 30px;
+
+  height: auto;
+  background: var(--dark);
+  box-shadow: var(--shadow);
+  border-radius: 15px;
+  z-index: 9;
+  padding: 10px;
+}
+
+.agents .dropdown .dropdown-content button {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
 }

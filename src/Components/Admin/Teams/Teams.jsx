@@ -14,8 +14,6 @@ const Teams = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTeamInfo, setSelectedTeamInfo] = useState(null);
 
-  const [editedTeamName, setEditedTeamName] = useState("");
-  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     const obtenerEquipos = async () => {
