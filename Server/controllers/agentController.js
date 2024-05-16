@@ -183,6 +183,17 @@ class AgentController {
       });
     }
   }
+
+  static async getAllAgentsSuspended(req, res) {
+    try {
+      const agents = await Agent.getAllAgentsSuspended();
+      res.json(agents);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+
+
 }
 
 module.exports = AgentController;

@@ -70,6 +70,20 @@ class Agent {
       });
     });
   }
+
+  static getAllAgentsSuspended() {
+    return new Promise((resolve, reject) => {
+      db.query("SELECT * FROM users WHERE status = 'suspended'", (error, results) => {
+        if (error) {
+          reject(new Error("Error al obtener los agentes"));
+        } else {
+          resolve(results);
+        }
+      });
+    });
+  }
+
+
 }
 
 module.exports = Agent;

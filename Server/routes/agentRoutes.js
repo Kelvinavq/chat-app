@@ -19,4 +19,8 @@ router.put("/:id/disable", AgentController.disableAgent);
 // Ruta para habilitar el usuario
 router.put("/:id/enable", AgentController.enableAgent);
 
+// Ruta para obtener usuarios suspendidos
+router.get("/get-all-users-suspended", AgentController.getAllAgentsSuspended);
+
+
 module.exports = router;

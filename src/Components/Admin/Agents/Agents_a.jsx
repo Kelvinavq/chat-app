@@ -386,7 +386,7 @@ const Agents_a = () => {
           </div>
 
           <div className="counter">
-            <h4>Activos ({counter})</h4>
+            <h4>Total ({counter})</h4>
           </div>
 
           <div className="tabla">
