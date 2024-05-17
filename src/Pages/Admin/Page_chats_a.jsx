@@ -41,7 +41,7 @@ const Page_chats_a = () => {
             <Chat_a selectedChat={selectedChat} messages={messages} setMessages={setMessages} />
           </div>
           <div className="info">
-            <Info_Chat_a />
+            <Info_Chat_a selectedChat={selectedChat} />
           </div>
         </div>
       </div>

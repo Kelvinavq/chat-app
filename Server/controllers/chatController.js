@@ -15,7 +15,8 @@ exports.createChat = async (req) => {
 
         try {
           // Crear el chat en la base de datos
-          const chatQuery = "INSERT INTO chats (client_id, team_id) VALUES (?, ?)";
+          const chatQuery =
+            "INSERT INTO chats (client_id, team_id) VALUES (?, ?)";
           await new Promise((resolve, reject) => {
             db.query(chatQuery, [clientId, team_id], (err, result) => {
               if (err) return db.rollback(() => reject(err));
@@ -25,11 +26,12 @@ exports.createChat = async (req) => {
           });
 
           // Crear el mensaje asociado con el chat en la base de datos
-          const messageQuery = "INSERT INTO messages (chat_id, sender_id, message, type) VALUES (?, ?, ?, 'text')";
+          const messageQuery =
+            "INSERT INTO messages (chat_id, sender_id, message, type) VALUES (?, ?, ?, 'text')";
           await new Promise((resolve, reject) => {
             db.query(messageQuery, [chatId, clientId, option], (err) => {
               if (err) return db.rollback(() => reject(err));
-              
+
               resolve();
             });
           });
@@ -78,7 +80,6 @@ exports.createChat = async (req) => {
     throw error;
   }
 };
-
 
 // Controlador para obtener todos los mensajes de un chat activo
 exports.getChatMessages = async (req, res) => {
@@ -136,7 +137,7 @@ exports.getChatList = async (req, res) => {
   try {
     // Consultar la lista de chats con la información del cliente asociado
     const query = `
-    SELECT chats.*, clients.username AS username, teams.id as team_id, teams.name AS team_name FROM chats INNER JOIN clients ON chats.client_id = clients.id INNER JOIN teams ON chats.team_id = teams.id ORDER BY chats.created_at DESC
+    SELECT chats.*, clients.id as client_id, clients.registration_date as date, clients.username AS username, teams.id as team_id, teams.name AS team_name FROM chats INNER JOIN clients ON chats.client_id = clients.id INNER JOIN teams ON chats.team_id = teams.id ORDER BY chats.created_at DESC
     `;
     db.query(query, (err, result) => {
       if (err) {

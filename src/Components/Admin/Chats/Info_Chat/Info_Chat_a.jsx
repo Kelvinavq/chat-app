@@ -1,7 +1,25 @@
 import "./Info_Chat_a.css";
 import img from "../../../../assets/logo.png";
 
-const Info_Chat_a = () => {
+
+
+const Info_Chat_a =  ({ selectedChat}) => {
+
+  console.log(selectedChat);
+  if (!selectedChat) {
+    return <div className="screen_chat">Seleccione un chat para comenzar</div>;
+  }
+   // Convertir la cadena de fecha en un objeto de fecha
+   const registrationDate = new Date(selectedChat.date);
+
+   // Formatear la fecha
+   const formattedDate = registrationDate.toLocaleDateString(); // Formato: MM/DD/YYYY
+ 
+   // Formatear la hora
+   const formattedTime = registrationDate.toLocaleTimeString(); // Formato: HH:MM:SS
+ 
+
+
   return (
     <>
       <div className="info_chat">
@@ -14,9 +32,9 @@ const Info_Chat_a = () => {
         </div>
 
         <div className="info">
-          <h4>Se registró el 02-04-24</h4>
-          <h4>ID: 5</h4>
-          <h4>Usuario: username</h4>
+          <h4>Se registró el {formattedDate} a las {formattedTime}</h4>
+          <h4>ID: {selectedChat.client_id}</h4>
+          <h4>Usuario: {selectedChat.username}</h4>
         </div>
       </div>
     </>
