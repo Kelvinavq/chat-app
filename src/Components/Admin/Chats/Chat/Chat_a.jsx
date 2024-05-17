@@ -72,12 +72,12 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       console.log("El mensaje está vacío");
       return;
     }
-
+    const timestamp = new Date().getTime();
     const messageData = {
       chatId: selectedChat.id,
       sender_id: sender_id,
       message,
-      time: new Date().toLocaleTimeString(),
+      timestamp: timestamp,
     };
 
     try {

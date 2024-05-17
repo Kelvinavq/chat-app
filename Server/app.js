@@ -27,6 +27,7 @@ const agentRoutes = require('./routes/agentRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const authRoutes = require("./routes/authRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
+const { timeStamp } = require("console");
 
 
 // Rutas de la API
@@ -91,7 +92,7 @@ io.on("connection", (socket) => {
       chatId: data.chatId,
       sender_id: data.sender_id,
       message: data.message,
-      time: new Date().toLocaleTimeString(), 
+      timestamp: new Date().getTime(), 
     };
   
     // Emitir el mensaje a todos los clientes

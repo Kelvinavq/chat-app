@@ -10,6 +10,7 @@ import Page_chats_a from "./Pages/Admin/Page_chats_a";
 import Page_teams_a from "./Pages/Admin/Page_teams_a";
 import Page_agents_a from "./Pages/Admin/Page_agents_a";
 import Page_suspende_a from "./Pages/Admin/Page_suspende_a";
+import Page_chats_archiveds from "./Pages/Admin/Page_chats_archiveds";
 
 const router = createBrowserRouter([
   // publics
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/admin/agentes-suspendidos",
     element: <Page_suspende_a />,
+  },
+  {
+    path: "/admin/archivados",
+    element: <Page_chats_archiveds />,
   },
 ]);
 

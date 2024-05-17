@@ -114,6 +114,7 @@ const Bubble_Chat = () => {
   const loadChatMessages = async (chatId) => {
     const messages = await fetchChatMessages(chatId);
     setMessages(messages);
+    setIsLastChatActive(true);
   };
 
   useEffect(() => {
@@ -172,11 +173,12 @@ const Bubble_Chat = () => {
         if (data.isLastChatActive) {
           // Si el último chat está activo, actualiza chatId con el ID del último chat
           setChatId(data.chatId);
+          setIsLastChatActive(data.isLastChatActive);
         } else {
+          setIsLastChatActive(false);
           // Si el último chat está inactivo, actualiza chatId a null
           setChatId(null);
         }
-        setIsLastChatActive(data.isLastChatActive);
       } else {
         throw new Error("Failed to check last chat status");
       }
@@ -303,6 +305,7 @@ const Bubble_Chat = () => {
     try {
       // Obtener el ID del cliente
       const clientId = clientInfo.clientInfo.id;
+      setIsLastChatActive(true);
 
       // Registrar un nuevo chat y mensaje en la base de datos
       const response = await fetch(
@@ -321,15 +324,12 @@ const Bubble_Chat = () => {
         }
       );
 
-      console.log("response:" + response.status);
-
       if (response.ok) {
         const data = await response.json();
         setChatId(data.chatId);
 
         // Cargar automáticamente los mensajes después de establecer el chatId
         loadChatMessages(data.chatId);
-        setIsLastChatActive(true);
 
         socket.emit("sendMessage", {
           chatId: data.chatId,
@@ -341,7 +341,6 @@ const Bubble_Chat = () => {
       }
     } catch (error) {
       console.error("Error creating chat and message:", error);
-      // Manejar el error apropiadamente
     }
   };
 
@@ -372,7 +371,7 @@ const Bubble_Chat = () => {
         console.log("No hay chat activo");
         return;
       }
-
+      const timestamp = new Date().getTime();
       // Enviar el mensaje al servidor para su registro en la base de datos
       const response = await fetch(
         "http://localhost:4000/api/chats/messages/create",
@@ -387,6 +386,7 @@ const Bubble_Chat = () => {
             sender_id: sender_id,
             message: message,
             type: "text",
+            timestamp: timestamp,
           }),
         }
       );
@@ -399,7 +399,7 @@ const Bubble_Chat = () => {
 
         // Actualizar el estado de los mensajes con el nuevo mensaje enviado
         setMessages([...messages, { sender_id: sender_id, message: message }]);
-        socket.emit("sendMessage", { chatId, sender_id, message });
+        socket.emit("sendMessage", { chatId, sender_id, message, timestamp });
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -479,7 +479,24 @@ const Bubble_Chat = () => {
               </div>
 
               <div className="messages">
-                {!isLastChatActive && (
+                {isLastChatActive ? (
+                  messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`message ${
+                        message.sender_id === clientInfo.clientInfo.id
+                          ? "message-personal"
+                          : ""
+                      } new`}
+                    >
+                      <p>{message.message}</p>
+                      <div className="timestamp"></div>
+                      {index === messages.length - 1 && (
+                        <div ref={endOfMessagesRef}></div>
+                      )}
+                    </div>
+                  ))
+                ) : (
                   <>
                     <div className="message new">
                       <figure className="avatar">
@@ -510,24 +527,6 @@ const Bubble_Chat = () => {
                     </div>
                   </>
                 )}
-
-                {isLastChatActive &&
-                  messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`message ${
-                        message.sender_id === clientInfo.clientInfo.id
-                          ? "message-personal"
-                          : ""
-                      } new`}
-                    >
-                      <p>{message.message}</p>
-                      <div className="timestamp"></div>
-                      {index === messages.length - 1 && (
-                        <div ref={endOfMessagesRef}></div>
-                      )}
-                    </div>
-                  ))}
               </div>
 
               <div className="message-box">

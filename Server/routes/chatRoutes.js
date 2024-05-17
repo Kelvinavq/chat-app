@@ -24,5 +24,14 @@ router.get("/list-team", chatController.getTeamList);
 // Ruta para crear un nuevo mensaje en un chat existente
 router.post("/messages/create-admin", chatController.createMessageAdmin);
 
+// Ruta archivar chat
+router.put('/archive-chat/:id', chatController.archiveChat);
+
+// Ruta para obtener la lista de chats suspendidos
+router.get("/chats-archiveds", chatController.getChatListSuspended);
+
+// Ruta archivar chat
+router.put('/mark-chat-visible/:id', chatController.markAsVisible);
+
 // Exportar las rutas
 module.exports = router;
