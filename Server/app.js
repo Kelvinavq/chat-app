@@ -45,6 +45,15 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
+
+
+
+
+
+
+
+
+
 // Configuración del WebSocket
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
@@ -80,7 +89,7 @@ io.on("connection", (socket) => {
 
     const messageData = {
       chatId: data.chatId,
-      senderId: data.senderId,
+      sender_id: data.sender_id,
       message: data.message,
       time: new Date().toLocaleTimeString(), 
     };
@@ -89,6 +98,18 @@ io.on("connection", (socket) => {
     io.to(data.chatId).emit("newMessage", messageData);
   });
 });
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Manejar solicitudes de Socket.IO
 app.get("/socket.io/", (req, res) => {

@@ -108,12 +108,12 @@ exports.getChatMessages = async (req, res) => {
 // Controlador para crear un nuevo mensaje en un chat existente
 exports.createMessage = async (req, res) => {
   try {
-    const { chatId, senderId, message, type } = req.body;
+    const { chatId, sender_id, message, type } = req.body;
 
     // Insertar el nuevo mensaje en la base de datos
     const messageQuery =
       "INSERT INTO messages (chat_id, sender_id, message, type) VALUES (?, ?, ?, ?)";
-    db.query(messageQuery, [chatId, senderId, message, type], (err, result) => {
+    db.query(messageQuery, [chatId, sender_id, message, type], (err, result) => {
       if (err) {
         console.error("Error creating message:", err);
         res
@@ -177,5 +177,39 @@ exports.getTeamList = async (req, res) => {
     res
       .status(500)
       .json({ error: "An error occurred while fetching team list" });
+  }
+};
+
+exports.createMessageAdmin = async (req, res) => {
+  try {
+    const { chatId, sender_id, message } = req.body;
+
+    // Insertar el nuevo mensaje en la base de datos
+    const messageQuery =
+      "INSERT INTO messages (chat_id, sender_id, message, type) VALUES (?, ?, ?, 'text')";
+    db.query(
+      messageQuery,
+      [chatId, sender_id, message],
+      (err, result) => {
+        if (err) {
+          console.error("Error creating message:", err);
+          res.status(500).json({
+            error: "An error occurred while creating message",
+          });
+        } else {
+          // Obtener el ID del mensaje insertado
+          const messageId = result.insertId;
+          res.status(200).json({
+            message: "Message created successfully",
+            messageId: messageId,
+          });
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error creating message:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while creating message" });
   }
 };

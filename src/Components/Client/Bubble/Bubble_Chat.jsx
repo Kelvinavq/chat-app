@@ -43,17 +43,78 @@ const Bubble_Chat = () => {
     getTeamList();
 
     // Listener para manejar los mensajes recibidos del servidor
-    socket.on("newMessage", (data) => {
-      // Agrega el nuevo mensaje recibido al estado
-      setMessages((prevMessages) => [...prevMessages, data.message]);
-      console.log("New message received:", data);
-    });
+    const handleNewMessage = (data) => {
+      // Verificar si el mensaje no está vacío antes de agregarlo al estado de mensajes
+      if (data.message.trim() !== "") {
+        setMessages((prevMessages) => {
+          // Verificar si el mensaje ya existe en el estado de mensajes
+          const isDuplicate = prevMessages.some((msg) => msg.id === data.id);
+          if (isDuplicate) {
+            return prevMessages;
+          }
+          // Agregar el nuevo mensaje al estado de mensajes
+          return [...prevMessages, data];
+        });
+      }
+    };
+
+    socket.on("newMessage", handleNewMessage);
+    console.log(messages);
 
     // Limpia el listener cuando el componente se desmonta
     return () => {
-      socket.off("newMessage");
+      socket.off("newMessage", handleNewMessage);
     };
   }, [isLastChatActive]);
+
+  useEffect(() => {
+    if (chatId) {
+      socket.emit("joinChat", chatId);
+      console.log(`Joined chat roomm: ${chatId}`);
+    }
+
+    return () => {
+      if (chatId) {
+        socket.emit("leaveChat", chatId);
+        console.log(`Left chat room: ${chatId}`);
+      }
+    };
+  }, [chatId]);
+
+  // Función para obtener todos los mensajes de un chat activo
+  const fetchChatMessages = async (chatId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/chats/${chatId}/messages`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        return data.messages;
+      } else if (response.status === 404) {
+        console.error("No messages found for the chat");
+        return [];
+      } else {
+        console.error("Error fetching chat messages:", response.statusText);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+      return [];
+    }
+  };
+
+  // Función para cargar los mensajes del chat activo al abrir la burbuja de chat
+  const loadChatMessages = async (chatId) => {
+    const messages = await fetchChatMessages(chatId);
+    setMessages(messages);
+  };
 
   useEffect(() => {
     // Desplazarse al final de los mensajes cuando se actualicen
@@ -272,7 +333,7 @@ const Bubble_Chat = () => {
 
         socket.emit("sendMessage", {
           chatId: data.chatId,
-          senderId: clientId,
+          sender_id: clientId,
           message: option,
         });
       } else {
@@ -282,10 +343,6 @@ const Bubble_Chat = () => {
       console.error("Error creating chat and message:", error);
       // Manejar el error apropiadamente
     }
-  };
-
-  const handleMessageInputChange = (e) => {
-    console.log("Message input changed:", e.target.value);
   };
 
   const handleMessageInputKeyDown = (e) => {
@@ -302,7 +359,7 @@ const Bubble_Chat = () => {
     try {
       const message = messageInput;
       const chat_id = chatId;
-      const senderId = clientInfo.clientInfo.id;
+      const sender_id = clientInfo.clientInfo.id;
 
       // Verificar que el mensaje no esté vacío
       if (!message.trim()) {
@@ -327,7 +384,7 @@ const Bubble_Chat = () => {
           },
           body: JSON.stringify({
             chatId: chat_id,
-            senderId: senderId,
+            sender_id: sender_id,
             message: message,
             type: "text",
           }),
@@ -337,52 +394,16 @@ const Bubble_Chat = () => {
       if (!response.ok) {
         throw new Error("Failed to send message");
       } else {
-        socket.emit("sendMessage", { chatId, senderId, message });
         // Limpiar el textarea después de enviar el mensaje
         setMessageInput("");
 
         // Actualizar el estado de los mensajes con el nuevo mensaje enviado
-        setMessages([...messages, { sender_id: senderId, message: message }]);
+        setMessages([...messages, { sender_id: sender_id, message: message }]);
+        socket.emit("sendMessage", { chatId, sender_id, message });
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      // Manejar el error apropiadamente
     }
-  };
-
-  // Función para obtener todos los mensajes de un chat activo
-  const fetchChatMessages = async (chatId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:4000/api/chats/${chatId}/messages`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        return data.messages; // Suponiendo que el backend devuelve un arreglo de mensajes
-      } else if (response.status === 404) {
-        console.error("No messages found for the chat");
-        return [];
-      } else {
-        console.error("Error fetching chat messages:", response.statusText);
-        return [];
-      }
-    } catch (error) {
-      console.error("Error fetching chat messages:", error);
-      return [];
-    }
-  };
-
-  // Función para cargar los mensajes del chat activo al abrir la burbuja de chat
-  const loadChatMessages = async (chatId) => {
-    const messages = await fetchChatMessages(chatId);
-    setMessages(messages);
   };
 
   useEffect(() => {

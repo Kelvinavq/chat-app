@@ -5,7 +5,6 @@ import img from "../../../../assets/logo.png";
 
 const Info_Chat_a =  ({ selectedChat}) => {
 
-  console.log(selectedChat);
   if (!selectedChat) {
     return <div className="screen_chat">Seleccione un chat para comenzar</div>;
   }

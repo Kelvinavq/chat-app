@@ -15,13 +15,14 @@ router.get("/:chatId/messages", chatController.getChatMessages);
 // Ruta para crear un nuevo mensaje en un chat existente
 router.post("/messages/create", chatController.createMessage);
 
-
 // Ruta para obtener la lista de chats
 router.get("/list", chatController.getChatList);
 
 // Ruta para obtener la lista de equipos
 router.get("/list-team", chatController.getTeamList);
 
+// Ruta para crear un nuevo mensaje en un chat existente
+router.post("/messages/create-admin", chatController.createMessageAdmin);
 
 // Exportar las rutas
 module.exports = router;

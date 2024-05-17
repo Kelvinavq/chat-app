@@ -9,11 +9,18 @@ const socket = io("http://localhost:4000");
 
 const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const [messageInput, setMessageInput] = useState("");
+  const [sender_id, setSender_id] = useState(null);
   const endOfMessagesRef = useRef(null);
 
   useEffect(() => {
+    const admin_Id = localStorage.getItem("adminId");
+    const admin_Id_Integer = parseInt(admin_Id, 10); // Convertir a número entero
+    setSender_id(admin_Id_Integer);
+  }, [sender_id]);
+  
+
+  useEffect(() => {
     const handleNewMessage = (messageData) => {
-      console.log("Received new message: ", messageData);
       if (messageData.chatId === selectedChat?.id) {
         setMessages((prevMessages) => [...prevMessages, messageData]);
       }
@@ -21,7 +28,6 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
     // Suscribirse al evento 'newMessage'
     socket.on("newMessage", handleNewMessage);
-    console.log("Subscribed to newMessage event");
 
     return () => {
       // Limpiar la suscripción al desmontar el componente
@@ -69,16 +75,34 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
     const messageData = {
       chatId: selectedChat.id,
-      senderId: "admin",
+      sender_id: sender_id,
       message,
       time: new Date().toLocaleTimeString(),
     };
 
-    socket.emit("sendMessage", messageData);
-    setMessageInput("");
+    try {
+      const response = await fetch(
+        "http://localhost:4000/api/chats/messages/create-admin",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(messageData),
+        }
+      );
 
-    // Actualizar el estado de los mensajes con el nuevo mensaje enviado
-    setMessages((prevMessages) => [...prevMessages, messageData]);
+      if (!response.ok) {
+        throw new Error("Failed to save message to database");
+      } else {
+        socket.emit("sendMessage", messageData);
+
+        setMessageInput("");
+      }
+    } catch (error) {
+      console.error("Error saving message to database:", error);
+    }
   };
 
   return (
@@ -102,7 +126,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
             <div
               key={index}
               className={`message ${
-                message.senderId === "admin" ? "sent" : "received"
+                message.sender_id != sender_id ? "received" : "sent"
               }`}
             >
               <div className="message_body">

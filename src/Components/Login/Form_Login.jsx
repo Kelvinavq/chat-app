@@ -63,10 +63,11 @@ const Form_Login = () => {
 
       if (response.ok) {
         // Si la solicitud fue exitosa, obtiene el token JWT del cuerpo de la respuesta
-        const { token } = await response.json();
+        const data = await response.json();
 
         // Guarda el token JWT en el almacenamiento local
-        localStorage.setItem("token", token);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("adminId", data.adminId);
 
         window.location = "/admin/chats";
       } else {
