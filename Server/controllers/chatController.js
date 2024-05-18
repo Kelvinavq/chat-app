@@ -2,9 +2,9 @@ const db = require("../Config/database");
 const socket = require("../Config/socket");
 // Controlador para crear un nuevo chat y mensaje asociado
 
-exports.createChat = async (req) => {
+exports.createChat = async (req, res) => {
   try {
-    const { clientId, option, team_id } = req.body;
+    const { clientId, option, team_id, autoMessages } = req.body;
     const io = socket.getIO();
     let chatId;
 
@@ -15,8 +15,7 @@ exports.createChat = async (req) => {
 
         try {
           // Crear el chat en la base de datos
-          const chatQuery =
-            "INSERT INTO chats (client_id, team_id) VALUES (?, ?)";
+          const chatQuery = "INSERT INTO chats (client_id, team_id) VALUES (?, ?)";
           await new Promise((resolve, reject) => {
             db.query(chatQuery, [clientId, team_id], (err, result) => {
               if (err) return db.rollback(() => reject(err));
@@ -26,15 +25,26 @@ exports.createChat = async (req) => {
           });
 
           // Crear el mensaje asociado con el chat en la base de datos
-          const messageQuery =
-            "INSERT INTO messages (chat_id, sender_id, message, type) VALUES (?, ?, ?, 'text')";
+          const messageQuery = "INSERT INTO messages (chat_id, sender_id, message, type) VALUES (?, ?, ?, 'text')";
           await new Promise((resolve, reject) => {
             db.query(messageQuery, [chatId, clientId, option], (err) => {
               if (err) return db.rollback(() => reject(err));
-
               resolve();
             });
           });
+
+          // Crear los mensajes automáticos asociados con el chat en la base de datos
+          const autoMessagesQuery = "INSERT INTO messages (chat_id, sender_id, message, type) VALUES ?";
+          const autoMessagesValues = autoMessages.map((message) => [chatId, message.sender_id, message.message, 'text']);
+
+          if (autoMessagesValues.length > 0) {
+            await new Promise((resolve, reject) => {
+              db.query(autoMessagesQuery, [autoMessagesValues], (err) => {
+                if (err) return db.rollback(() => reject(err));
+                resolve();
+              });
+            });
+          }
 
           // Obtener el username del cliente y el nombre del equipo
           const chatDataQuery = `
@@ -75,11 +85,14 @@ exports.createChat = async (req) => {
         }
       });
     });
+
+    res.status(200).json({ chatId });
   } catch (error) {
     console.error("Error creating chat and message:", error);
-    throw error;
+    res.status(500).json({ error: "An error occurred while creating chat and message" });
   }
 };
+
 
 // Controlador para obtener todos los mensajes de un chat activo
 exports.getChatMessages = async (req, res) => {
@@ -150,7 +163,6 @@ exports.getChatList = async (req, res) => {
           .status(500)
           .json({ error: "An error occurred while fetching chat list" });
       } else {
-        
         res.status(200).json({ chats: result });
       }
     });
@@ -226,8 +238,8 @@ exports.archiveChat = async (req, res) => {
           error: "An error occurred while archiving chat",
         });
       } else {
-         // Emitir evento de chat archivado
-         io.emit("chatArchived", {chatId} );
+        // Emitir evento de chat archivado
+        io.emit("chatArchived", { chatId });
         res.status(200).json({
           message: "chat archived successfully",
         });
@@ -253,7 +265,6 @@ exports.getChatListSuspended = async (req, res) => {
           .status(500)
           .json({ error: "An error occurred while fetching chat list" });
       } else {
-        
         res.status(200).json({ chats: result });
       }
     });
@@ -278,8 +289,8 @@ exports.markAsVisible = async (req, res) => {
           error: "An error occurred while unarchive chat",
         });
       } else {
-         // Emitir evento de chat archivado
-         io.emit("chatArchived", {chatId} );
+        // Emitir evento de chat archivado
+        io.emit("chatArchived", { chatId });
         res.status(200).json({
           message: "chat visible successfully",
         });
@@ -288,5 +299,51 @@ exports.markAsVisible = async (req, res) => {
   } catch (error) {
     console.error("Error unarchive chat:", error);
     res.status(500).json({ error: "An error occurred while unarchive chat" });
+  }
+};
+
+// Controlador para obtener la lista de mensajes de bienvenida
+exports.getMessagesWelcome = async (req, res) => {
+  try {
+    const query = `SELECT * FROM auto_messages WHERE type = "welcome" ORDER BY id ASC`;
+    db.query(query, (err, result) => {
+      if (err) {
+        console.error("Error fetching messages list:", err);
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching messages list" });
+      } else {
+        res.status(200).json({ messages_welcome: result });
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching messages list:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching messages list" });
+  }
+};
+
+// Controlador para obtener la lista de mensajes automáticos por team_id
+exports.getMessagesTeam = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const query = `SELECT * FROM auto_messages WHERE team_id = ? AND status = "active" ORDER BY id ASC`;
+    db.query(query, [id], (err, result) => {
+      if (err) {
+        console.error("Error fetching messages list:", err);
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching messages list" });
+      } else {
+        res.status(200).json({ messages_team: result });
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching messages list:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching messages list" });
   }
 };

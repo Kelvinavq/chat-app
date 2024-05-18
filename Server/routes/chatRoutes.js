@@ -33,5 +33,13 @@ router.get("/chats-archiveds", chatController.getChatListSuspended);
 // Ruta archivar chat
 router.put('/mark-chat-visible/:id', chatController.markAsVisible);
 
+// Ruta para obtener la lista de mensajes de bienvenida
+router.get("/get-welcome", chatController.getMessagesWelcome);
+
+// Ruta para obtener la lista de mensajes dependiendo del equipo
+router.get("/get-message-team/:id", chatController.getMessagesTeam);
+
+
+
 // Exportar las rutas
 module.exports = router;

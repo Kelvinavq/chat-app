@@ -26,8 +26,8 @@ const chatRoutes = require("./routes/chatRoutes");
 const agentRoutes = require('./routes/agentRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const authRoutes = require("./routes/authRoutes");
+const settingRoutes = require("./routes/settingRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
-const { timeStamp } = require("console");
 
 
 // Rutas de la API
@@ -36,6 +36,7 @@ app.use("/api/chats", chatRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api', teamRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/settings", settingRoutes);
 
 // Rutas protegidas
 app.use("/api/protected", protectedRoutes);

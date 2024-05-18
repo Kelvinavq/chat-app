@@ -1,0 +1,140 @@
+.settings_container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+
+.settings_container .inner_container {
+  width: calc(100% - 90px);
+  height: 100%;
+}
+
+.ajustes {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.ajustes .title {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ajustes .title h2 {
+  font-weight: 500;
+  color: var(--white);
+}
+
+.ajustes .buttons {
+  width: 100%;
+  margin-top: 20px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.ajustes .buttons .link {
+  color: var(--gray);
+  font-weight: 400;
+}
+
+.ajustes .buttons .link a {
+  color: var(--white);
+}
+
+.ajustes .buttons .link.active a {
+  font-weight: 600;
+  color: var(--button);
+}
+
+.modal .input p {
+  color: var(--white);
+  font-size: 0.9em;
+}
+
+.ajustes .filters {
+  width: 99%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.ajustes .filters .input {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  align-items: start;
+}
+
+.ajustes .filters .input input {
+  width: calc(100% - 10px);
+}
+
+.ajustes .counter {
+  width: 99%;
+}
+
+.ajustes .counter h4 {
+  font-weight: 500;
+  color: var(--white);
+}
+
+td.active {
+  color: var(--online);
+}
+
+td.inactive {
+  color: var(--danger);
+}
+
+.ajustes td {
+  position: relative;
+  overflow: visible !important;
+}
+
+.ajustes .dropdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ajustes .dropdown .dropdown-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 120px;
+  gap: 12px;
+  right: 90px;
+  top: 30px;
+
+  height: auto;
+  background: var(--dark);
+  box-shadow: var(--shadow);
+  border-radius: 15px;
+  z-index: 9;
+  padding: 10px;
+}
+
+.ajustes .dropdown .dropdown-content button {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+.swal2-html-container{
+  overflow: hidden !important;
+}

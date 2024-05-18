@@ -16,6 +16,8 @@ import io from "socket.io-client";
 const socket = io("http://localhost:4000");
 
 const Bubble_Chat = () => {
+  const [showBubble, setShowBubble] = useState(false);
+
   const [isLastChatActive, setIsLastChatActive] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -29,10 +31,18 @@ const Bubble_Chat = () => {
   const [messageInput, setMessageInput] = useState("");
   const [teams, setTeams] = useState([]);
 
+  const [messageWelcome, setMessageWelcome] = useState([]);
+
   const endOfMessagesRef = useRef(null);
 
   const handleCloseChat = () => {
     setShowChat(false);
+    setShowBubble(false);
+  };
+
+  const handleOpenChat = () => {
+    setShowChat(true);
+    setShowBubble(true);
   };
 
   useEffect(() => {
@@ -41,6 +51,7 @@ const Bubble_Chat = () => {
     checkLastChatStatus();
     getClientInfo();
     getTeamList();
+    getMessagesWerlcome();
 
     // Listener para manejar los mensajes recibidos del servidor
     const handleNewMessage = (data) => {
@@ -212,6 +223,31 @@ const Bubble_Chat = () => {
     }
   };
 
+  const getMessagesWerlcome = async () => {
+    try {
+      const url = new URL(`http://localhost:4000/api/chats/get-welcome`);
+
+      const response = await fetch(url, {
+        method: "GET",
+        mode: "cors",
+        credentials: "include",
+        headers: {
+          "content-type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        if (data) {
+          setMessageWelcome(data.messages_welcome);
+        }
+      }
+    } catch (error) {
+      console.error("Error al obtener los equipos:", error);
+    }
+  };
+
   const getClientInfo = async () => {
     try {
       const deviceId = localStorage.getItem("deviceId") || uuidv4();
@@ -247,8 +283,10 @@ const Bubble_Chat = () => {
   const handleBubbleClick = () => {
     if (!isRegistered) {
       setShowRegisterForm(true);
+      setShowBubble(true);
     } else {
       setShowChat(true);
+      setShowBubble(true);
     }
   };
 
@@ -303,15 +341,16 @@ const Bubble_Chat = () => {
 
   const handleOptionClick = async (id, option) => {
     try {
-      // Obtener el ID del cliente
       const clientId = clientInfo.clientInfo.id;
       setIsLastChatActive(true);
-
-      // Registrar un nuevo chat y mensaje en la base de datos
+  
+      // Obtener los mensajes automáticos para el equipo seleccionado
+      const autoMessages = await getAutoMessagesByTeamId(id);
+  
       const response = await fetch(
         "http://localhost:4000/api/chats/create-chat",
         {
-          method: "post",
+          method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
@@ -320,17 +359,44 @@ const Bubble_Chat = () => {
             clientId: clientId,
             option: option,
             team_id: id,
+            autoMessages: autoMessages.map(message => ({
+              sender_id: null, // o algún valor adecuado si necesario
+              message: message.message,
+              timestamp: new Date().getTime(),
+            })),
           }),
         }
       );
-
+  
       if (response.ok) {
         const data = await response.json();
         setChatId(data.chatId);
-
+  
+        // Emitir mensajes automáticos a través de socket
+        autoMessages.forEach((message) => {
+          socket.emit("sendMessage", {
+            chatId: data.chatId,
+            sender_id: clientId,
+            message: message.message,
+            timestamp: new Date().getTime(),
+          });
+        });
+  
+        // Actualizar el estado de los mensajes con los mensajes automáticos y el mensaje de opción
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          ...autoMessages.map(message => ({
+            sender_id: null,
+            message: message.message,
+            timestamp: new Date().getTime(),
+          })),
+          { message: option, sender_id: clientId, timestamp: new Date().getTime() }
+        ]);
+  
         // Cargar automáticamente los mensajes después de establecer el chatId
         loadChatMessages(data.chatId);
-
+  
+        // Emitir el mensaje de opción a través de socket
         socket.emit("sendMessage", {
           chatId: data.chatId,
           sender_id: clientId,
@@ -343,6 +409,7 @@ const Bubble_Chat = () => {
       console.error("Error creating chat and message:", error);
     }
   };
+  
 
   const handleMessageInputKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -412,14 +479,46 @@ const Bubble_Chat = () => {
     }
   }, [chatId]);
 
+  const getAutoMessagesByTeamId = async (id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/chats/get-message-team/${id}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.messages_team;
+      } else {
+        console.error("Failed to fetch auto messages:", response.statusText);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching auto messages:", error);
+      return [];
+    }
+  };
+
   return (
     <>
       <div className={`bubble`}>
-        <button onClick={handleBubbleClick} className={`bubble_button active`}>
+        <button
+          onClick={handleBubbleClick}
+          className={`bubble_button ${showBubble ? "active" : ""}`}
+        >
           <ChatBubbleRoundedIcon />
         </button>
 
-        <button onClick={handleBubbleClick} className={`show active`}>
+        <button
+          onClick={showBubble ? handleCloseChat : handleOpenChat}
+          className={`show ${showBubble ? "active" : ""}`}
+        >
           <ChevronLeftIcon />
         </button>
       </div>
@@ -498,21 +597,14 @@ const Bubble_Chat = () => {
                   ))
                 ) : (
                   <>
-                    <div className="message new">
-                      <figure className="avatar">
-                        <img src={img} />
-                      </figure>
-                      <p>
-                        ¡Hola, Bienvenido{" "}
-                        <strong>{clientInfo.clientInfo.username}</strong>!
-                      </p>
-                    </div>
-                    <div className="message new">
-                      <figure className="avatar">
-                        <img src={img} />
-                      </figure>
-                      <p>Por favor, seleccione una opción para continuar.</p>
-                    </div>
+                    {messageWelcome.map((welcome, index) => (
+                      <div className="message new" key={index}>
+                        <figure className="avatar">
+                          <img src={img} />
+                        </figure>
+                        <p>{welcome.message}</p>
+                      </div>
+                    ))}
 
                     <div className="options">
                       {teams.map((team) => (

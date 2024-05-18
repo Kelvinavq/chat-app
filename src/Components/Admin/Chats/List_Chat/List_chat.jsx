@@ -149,7 +149,8 @@ const DropdownMenu = ({ options, onOptionClick }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
-  const handleOptionClick = (option) => {
+  const handleOptionClick = (option, event) => {
+    event.stopPropagation();
     onOptionClick(option);
     setShowMenu(false); // Ocultar el menú después de seleccionar una opción
   };
