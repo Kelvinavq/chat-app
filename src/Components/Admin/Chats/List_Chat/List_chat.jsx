@@ -129,6 +129,7 @@ const List_chat = ({ onChatClick }) => {
                   <img src={img} alt="" />
                 </div>
                 <div className="content">
+                  
                   <h4>{chat.username}</h4>
                   <p>{chat.team_name}</p>
                 </div>

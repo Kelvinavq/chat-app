@@ -56,8 +56,6 @@
   padding: 10px;
 }
 
-
-
 /* ******************************************** */
 
 /*--------------------
@@ -368,6 +366,13 @@ Message Box
   width: 20px;
 }
 
+.message-box .buttons button label {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .message-box .message-submit {
   z-index: 1;
   /* top: 9px; */
@@ -383,7 +388,6 @@ Message Box
   outline: none !important;
   transition: background 0.2s ease;
 }
-
 
 /*--------------------
 Custom Srollbar
@@ -456,8 +460,7 @@ Bounce
   }
 }
 
-
-.chat .options .option{
+.chat .options .option {
   width: 100%;
   padding: 10px 0;
   color: var(--dark);
@@ -465,7 +468,7 @@ Bounce
   letter-spacing: 1px;
 }
 
-.chat .form{
+.chat .form {
   width: 100%;
   height: 100%;
   display: flex;
@@ -474,7 +477,7 @@ Bounce
   align-items: center;
 }
 
-.chat .form form{
+.chat .form form {
   width: 98%;
   height: 99%;
   border-radius: 20px;
@@ -488,7 +491,7 @@ Bounce
   margin-left: -1px;
 }
 
-.chat .form form .head{
+.chat .form form .head {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -497,13 +500,13 @@ Bounce
   flex-direction: column;
 }
 
-.chat .form form .head h4{
+.chat .form form .head h4 {
   margin: 0;
   color: var(--white);
   font-weight: 500;
   font-size: 1.4em;
 }
 
-.chat .form form .head img{
+.chat .form form .head img {
   max-width: 100px;
 }

@@ -10,14 +10,17 @@ const socket = io("http://localhost:4000");
 const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const [messageInput, setMessageInput] = useState("");
   const [sender_id, setSender_id] = useState(null);
+  const [clientID, setClientID] = useState(null);
   const endOfMessagesRef = useRef(null);
+  const [isClientOnline, setIsClientOnline] = useState(false);
+  const [acceptedChats, setAcceptedChats] = useState({});
+  const [adminIdAcceptChat, setAdminIdAcceptChat] = useState(null);
 
   useEffect(() => {
     const admin_Id = localStorage.getItem("adminId");
-    const admin_Id_Integer = parseInt(admin_Id, 10); // Convertir a número entero
+    const admin_Id_Integer = parseInt(admin_Id, 10);
     setSender_id(admin_Id_Integer);
   }, [sender_id]);
-  
 
   useEffect(() => {
     const handleNewMessage = (messageData) => {
@@ -39,13 +42,33 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
     if (selectedChat) {
       socket.emit("joinChat", selectedChat.id);
       console.log(`Joined chat: ${selectedChat.id}`);
+      setClientID(selectedChat.client_id);
 
       return () => {
         socket.emit("leaveChat", selectedChat.id);
         console.log(`Left chat: ${selectedChat.id}`);
       };
     }
-  }, [selectedChat]);
+  }, [selectedChat, clientID, adminIdAcceptChat]);
+
+  useEffect(() => {
+    const handleUserStatusUpdate = ({ clientId, isOnline }) => {
+      if (clientID === clientId) {
+        setIsClientOnline(isOnline);
+      }
+    };
+
+    // Escuchar el evento 'updateUserStatus' del servidor WebSocket
+    socket.on("updateUserStatus", handleUserStatusUpdate);
+
+    // Enviar el evento "clientOnline" cuando el cliente se conecta al chat
+    socket.emit("clientOnline", clientID);
+
+    return () => {
+      // Limpiar la suscripción al desmontar el componente
+      socket.off("updateUserStatus", handleUserStatusUpdate);
+    };
+  }, [clientID]);
 
   useEffect(() => {
     // Desplazarse al final de los mensajes cuando se actualicen
@@ -57,6 +80,34 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   if (!selectedChat) {
     return <div className="screen_chat">Seleccione un chat para comenzar</div>;
   }
+
+  const handleAcceptChat = async (chatId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/chats/accept-chat/${chatId}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ adminId: sender_id }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to accept chat");
+      } else {
+        // Actualizar el estado del chat localmente después de aceptarlo
+        setAcceptedChats((prevAcceptedChats) => ({
+          ...prevAcceptedChats,
+          [chatId]: true,
+        }));
+      }
+    } catch (error) {
+      console.error("Error accepting chat:", error);
+    }
+  };
 
   const handleMessageInputKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -116,7 +167,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
           <div className="content">
             <h4>{selectedChat.username}</h4>
             <small className="online">
-              {selectedChat.isOnline ? "En linea" : "Desconectado"}
+              {isClientOnline ? "Cliente en línea" : "Cliente fuera de línea"}
             </small>
           </div>
         </div>
@@ -139,24 +190,39 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
         </div>
 
         <div className="input_area">
-          <div className="input">
-            <input
-              type="text"
-              placeholder="Escribe un mensaje..."
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyDown={handleMessageInputKeyDown}
-            />
-          </div>
+          {(selectedChat.admin_id !== null ||
+            acceptedChats[selectedChat.id]) && (
+            <>
+              <div className="input">
+                <input
+                  type="text"
+                  placeholder="Escribe un mensaje..."
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyDown={handleMessageInputKeyDown}
+                />
+              </div>
 
-          <div className="buttons">
-            <button className="media">
-              <CameraAltRoundedIcon />
-            </button>
-            <button className="send" onClick={handleSendMessage}>
-              <SendRoundedIcon />
-            </button>
-          </div>
+              <div className="buttons">
+                <button className="media">
+                  <CameraAltRoundedIcon />
+                </button>
+                <button className="send" onClick={handleSendMessage}>
+                  <SendRoundedIcon />
+                </button>
+              </div>
+            </>
+          )}
+          {selectedChat.admin_id === null &&
+            !acceptedChats[selectedChat.id] && (
+              <>
+                <div className="accept_chat">
+                  <button onClick={() => handleAcceptChat(selectedChat.id)}>
+                    Aceptar este chat
+                  </button>
+                </div>
+              </>
+            )}
         </div>
       </div>
     </>

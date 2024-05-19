@@ -27,8 +27,10 @@ const Bubble_Chat = () => {
   const [password, setPassword] = useState("");
   const [clientInfo, setClientInfo] = useState(null);
   const [chatId, setChatId] = useState(null);
+  const [clientID, setClientID] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
+  const [image, setImage] = useState(null);
   const [teams, setTeams] = useState([]);
 
   const [messageWelcome, setMessageWelcome] = useState([]);
@@ -70,7 +72,6 @@ const Bubble_Chat = () => {
     };
 
     socket.on("newMessage", handleNewMessage);
-    console.log(messages);
 
     // Limpia el listener cuando el componente se desmonta
     return () => {
@@ -91,6 +92,23 @@ const Bubble_Chat = () => {
       }
     };
   }, [chatId]);
+
+  useEffect(() => {
+    const handleUserStatusUpdate = ({ clientId, isOnline }) => {
+      // Actualizar el estado del cliente según el evento recibido
+      if (clientID === clientId) {
+        setIsClientOnline(isOnline);
+      }
+    };
+
+    // Escuchar el evento 'updateUserStatus' del servidor WebSocket
+    socket.on("updateUserStatus", handleUserStatusUpdate);
+
+    return () => {
+      // Limpiar la suscripción al desmontar el componente
+      socket.off("updateUserStatus", handleUserStatusUpdate);
+    };
+  }, [clientID]);
 
   // Función para obtener todos los mensajes de un chat activo
   const fetchChatMessages = async (chatId) => {
@@ -153,6 +171,8 @@ const Bubble_Chat = () => {
       if (response.ok) {
         const data = await response.json();
         setIsRegistered(data.isRegistered);
+        setClientID(data.clientId);
+
         // Emitir evento de cliente en línea
         socket.emit("clientOnline", data.clientId);
       } else {
@@ -343,10 +363,10 @@ const Bubble_Chat = () => {
     try {
       const clientId = clientInfo.clientInfo.id;
       setIsLastChatActive(true);
-  
+
       // Obtener los mensajes automáticos para el equipo seleccionado
       const autoMessages = await getAutoMessagesByTeamId(id);
-  
+
       const response = await fetch(
         "http://localhost:4000/api/chats/create-chat",
         {
@@ -359,7 +379,7 @@ const Bubble_Chat = () => {
             clientId: clientId,
             option: option,
             team_id: id,
-            autoMessages: autoMessages.map(message => ({
+            autoMessages: autoMessages.map((message) => ({
               sender_id: null, // o algún valor adecuado si necesario
               message: message.message,
               timestamp: new Date().getTime(),
@@ -367,11 +387,11 @@ const Bubble_Chat = () => {
           }),
         }
       );
-  
+
       if (response.ok) {
         const data = await response.json();
         setChatId(data.chatId);
-  
+
         // Emitir mensajes automáticos a través de socket
         autoMessages.forEach((message) => {
           socket.emit("sendMessage", {
@@ -381,21 +401,25 @@ const Bubble_Chat = () => {
             timestamp: new Date().getTime(),
           });
         });
-  
+
         // Actualizar el estado de los mensajes con los mensajes automáticos y el mensaje de opción
         setMessages((prevMessages) => [
           ...prevMessages,
-          ...autoMessages.map(message => ({
+          ...autoMessages.map((message) => ({
             sender_id: null,
             message: message.message,
             timestamp: new Date().getTime(),
           })),
-          { message: option, sender_id: clientId, timestamp: new Date().getTime() }
+          {
+            message: option,
+            sender_id: clientId,
+            timestamp: new Date().getTime(),
+          },
         ]);
-  
+
         // Cargar automáticamente los mensajes después de establecer el chatId
         loadChatMessages(data.chatId);
-  
+
         // Emitir el mensaje de opción a través de socket
         socket.emit("sendMessage", {
           chatId: data.chatId,
@@ -409,7 +433,6 @@ const Bubble_Chat = () => {
       console.error("Error creating chat and message:", error);
     }
   };
-  
 
   const handleMessageInputKeyDown = (e) => {
     if (e.key === "Enter") {

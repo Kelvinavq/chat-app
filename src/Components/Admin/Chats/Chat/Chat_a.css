@@ -78,6 +78,13 @@
   /* padding: 10px; */
 }
 
+.input_area {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .message {
   margin-bottom: 10px;
   clear: both;
@@ -105,11 +112,11 @@
   margin-top: 10px;
 }
 
-.sent .message_body{
+.sent .message_body {
   border-top-right-radius: 0px;
 }
 
-.received .message_body{
+.received .message_body {
   border-top-left-radius: 0px;
 }
 

@@ -62,6 +62,7 @@ app.use((err, req, res, next) => {
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
 
+
   socket.on("disconnect", () => {
     if (socket.clientId) {
       console.log(`Client ${socket.clientId} disconnected`);
@@ -71,10 +72,10 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("clientOnline", (clientId) => {
+socket.on("clientOnline", (clientId) => {
     socket.clientId = clientId; 
-    console.log(`Client ${clientId} is online`);
-    io.emit("updateUserStatus", { clientId, isOnline: true });
+    console.log(`Clienttt ${clientId} is online`);
+    io.emit("updateUserStatus", { clientId, isOnline: true }); // Enviar a todos los clientes
   });
 
   
