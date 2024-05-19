@@ -1,5 +1,6 @@
 const db = require("../Config/database");
 const socket = require("../Config/socket");
+
 // Controlador para crear un nuevo chat y mensaje asociado
 
 exports.createChat = async (req, res) => {

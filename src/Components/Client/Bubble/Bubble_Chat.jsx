@@ -30,7 +30,7 @@ const Bubble_Chat = () => {
   const [clientID, setClientID] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
-  const [image, setImage] = useState(null);
+    const [image, setImage] = useState(null);
   const [teams, setTeams] = useState([]);
 
   const [messageWelcome, setMessageWelcome] = useState([]);

@@ -71,6 +71,13 @@
   align-items: center;
 }
 
+.screen_chat .input_area .buttons button label{
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .chat_area {
   /* width: 300px; */
   overflow-y: auto;
