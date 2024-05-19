@@ -27,6 +27,7 @@ const agentRoutes = require('./routes/agentRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const authRoutes = require("./routes/authRoutes");
 const settingRoutes = require("./routes/settingRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 
 
@@ -37,6 +38,7 @@ app.use('/api/agents', agentRoutes);
 app.use('/api', teamRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/settings", settingRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Rutas protegidas
 app.use("/api/protected", protectedRoutes);

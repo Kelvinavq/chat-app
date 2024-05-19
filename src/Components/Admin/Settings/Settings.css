@@ -135,6 +135,97 @@ td.inactive {
   display: flex;
   align-items: center;
 }
-.swal2-html-container{
+.swal2-html-container {
   overflow: hidden !important;
+}
+
+.ajustes .content {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
+}
+
+.ajustes .content .img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--dark-3);
+  position: relative;
+}
+
+.ajustes .content .img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.ajustes .content .img button {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  border-radius: 30%;
+
+  width: 50px;
+  height: 50px;
+}
+
+.ajustes .content .img button label {
+  margin: 0;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.ajustes .content .text {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+  margin-top: 50px;
+  gap: 12px;
+}
+
+.ajustes .content .text p {
+  margin: 0;
+  font-size: 1.2em;
+  color: var(--white);
+}
+
+.ajustes .content .buttons {
+  width: 100%;
+  margin-top: 40px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ajustes .content .buttons button:last-child {
+  background: transparent;
+  border: 2px solid var(--button);
+}
+
+.ajustes .content .buttons button:first-child {
+  border: 2px solid var(--button);
+}
+
+@media (max-width: 920px) {
+  .settings_container .inner_container {
+    width: calc(100% - 10px);
+  }
 }

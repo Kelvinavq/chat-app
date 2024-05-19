@@ -50,7 +50,7 @@ const Sidebar_a = () => {
         <div className="items_bottom">
           <Link
             to={"/admin/ajustes"}
-            className={`item ${isActive("/admin/ajustes")}`}
+            className={`item ${isActive("/admin/ajustes")} ${isActive("/admin/ajustes/perfil")}`}
           >
             <SettingsOutlinedIcon />
             <small>Ajustes</small>
