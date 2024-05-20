@@ -11,6 +11,70 @@ import Config from "../../../../Config/Config";
 const List_chat = ({ onChatClick }) => {
   const [chats, setChats] = useState([]);
   const [onlineStatus, setOnlineStatus] = useState({});
+  const [adminTeamIds, setAdminTeamIds] = useState([]);
+
+  const adminId = localStorage.getItem("adminId");
+
+  useEffect(() => {
+    const fetchAdminTeams = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:4000/api/admin/teams/${adminId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          // Extrae los IDs de los equipos y actualiza el estado
+          const teamIds = data.teams.map((team) => team.id);
+          setAdminTeamIds(teamIds);
+        } else {
+          console.error("Failed to fetch admin teams");
+        }
+      } catch (error) {
+        console.error("Error fetching admin teams:", error);
+      }
+    };
+
+    fetchAdminTeams();
+  }, [adminId]);
+
+  useEffect(() => {
+    if (adminTeamIds.length > 0) {
+      fetch(`http://localhost:4000/api/chats/list/${adminId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const filteredChats = data.chats.filter((chat) =>
+            adminTeamIds.includes(chat.team_id)
+          );
+          setChats(filteredChats);
+        })
+        .catch((error) => {
+          console.error("Error fetching chat list:", error);
+        });
+
+      socket.on("newChatNotification", (chatData) => {
+        if (adminTeamIds.includes(chatData.team_id)) {
+          // Filtrar el nuevo chat
+          chatData.lastMessageTime = chatData.timestamp;
+          setChats((prevChats) => {
+            const updatedChats = [chatData, ...prevChats];
+            return sortChatsByTime(updatedChats);
+          });
+        }
+      });
+
+      socket.on("updateUserStatus", ({ clientId, isOnline }) => {
+        setOnlineStatus((prevStatus) => ({
+          ...prevStatus,
+          [clientId]: isOnline,
+        }));
+      });
+
+      return () => {
+        socket.off("newChatNotification");
+        socket.off("updateUserStatus");
+      };
+    }
+  }, [adminId, adminTeamIds]);
 
   useEffect(() => {
     socket.on("updateUserStatus", (data) => {
@@ -29,39 +93,6 @@ const List_chat = ({ onChatClick }) => {
     return () => {
       socket.off("updateUserStatus");
       socket.off("chatArchived");
-    };
-  }, []);
-
-  useEffect(() => {
-    // Realizar la solicitud GET al backend para obtener la lista de chats
-    fetch(`http://localhost:4000/api/chats/list`)
-      .then((response) => response.json())
-      .then((data) => {
-        setChats(data.chats);
-      })
-      .catch((error) => {
-        console.error("Error fetching chat list:", error);
-      });
-
-    socket.on("newChatNotification", (chatData) => {
-      chatData.lastMessageTime = chatData.timestamp;
-      setChats((prevChats) => {
-        const updatedChats = [chatData, ...prevChats];
-        return sortChatsByTime(updatedChats);
-      });
-    });
-
-    socket.on("updateUserStatus", ({ clientId, isOnline }) => {
-      setOnlineStatus((prevStatus) => ({
-        ...prevStatus,
-        [clientId]: isOnline,
-      }));
-    });
-
-    // Limpiar el listener al desmontar el componente
-    return () => {
-      socket.off("newChatNotification");
-      socket.off("updateUserStatus");
     };
   }, []);
 

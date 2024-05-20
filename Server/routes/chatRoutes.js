@@ -15,7 +15,7 @@ router.get("/:chatId/messages", chatController.getChatMessages);
 router.post("/messages/create", chatController.createMessage);
 
 // Ruta para obtener la lista de chats
-router.get("/list", chatController.getChatList);
+router.get("/list/:id", chatController.getChatList);
 
 // Ruta para obtener la lista de equipos
 router.get("/list-team", chatController.getTeamList);

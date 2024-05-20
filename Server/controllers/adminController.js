@@ -130,3 +130,27 @@ exports.updateAdminImage = async (req, res) => {
     }
   });
 };
+
+exports.getAdminTeams = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const query = `
+      SELECT teams.id, teams.name 
+      FROM user_teams 
+      INNER JOIN teams ON user_teams.team_id = teams.id 
+      WHERE user_teams.user_id = ?
+    `;
+    db.query(query, [id], (err, result) => {
+      if (err) {
+        console.error("Error fetching admin teams:", err);
+        return res.status(500).json({ error: "Failed to fetch admin teams" });
+      }
+      res.status(200).json({ teams: result });
+    });
+  } catch (error) {
+    console.error("Error fetching admin teams:", error);
+    res.status(500).json({ error: "An error occurred" });
+  }
+};
+

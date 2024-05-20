@@ -58,7 +58,7 @@ exports.createChat = async (req, res) => {
 
           // Obtener el username del cliente y el nombre del equipo
           const chatDataQuery = `
-            SELECT clients.username AS username, teams.name AS team_name 
+            SELECT clients.username AS username, teams.name AS team_name, teams.id as team_id 
             FROM clients 
             INNER JOIN teams ON teams.id = ?
             WHERE clients.id = ?
@@ -82,6 +82,7 @@ exports.createChat = async (req, res) => {
               id: chatId,
               username: chatData.username,
               team_name: chatData.team_name,
+              team_id: chatData.team_id,
             };
             io.emit("newChatNotification", newChatData);
 
@@ -163,28 +164,44 @@ exports.createMessage = async (req, res) => {
 // Controlador para obtener la lista de chats
 exports.getChatList = async (req, res) => {
   try {
-    // Consultar la lista de chats con la información del cliente asociado
-    const query = `
-    SELECT chats.*, clients.id as client_id, clients.registration_date as date, clients.username AS username, teams.id as team_id, teams.name AS team_name FROM chats INNER JOIN clients ON chats.client_id = clients.id INNER JOIN teams ON chats.team_id = teams.id WHERE chats.archived = 'visible' ORDER BY chats.created_at DESC
+    const adminId = req.params.id;
+
+    // Consultar los IDs de los equipos asociados al administrador desde la tabla user_teams
+    const teamsQuery = `
+      SELECT team_id FROM user_teams WHERE user_id = ?
     `;
-    db.query(query, (err, result) => {
+    db.query(teamsQuery, [adminId], (err, teamResults) => {
       if (err) {
-        console.error("Error fetching chat list:", err);
-        res
-          .status(500)
-          .json({ error: "An error occurred while fetching chat list" });
+        console.error("Error fetching user's teams:", err);
+        res.status(500).json({ error: "An error occurred while fetching user's teams" });
       } else {
-        res.status(200).json({ chats: result });
+        const teamIds = teamResults.map(team => team.team_id);
+
+        // Consultar la lista de chats con la información del cliente asociado y filtrar por los IDs de equipos obtenidos
+        const query = `
+          SELECT chats.*, clients.id AS client_id, clients.registration_date AS date, clients.username AS username, teams.id AS team_id, teams.name AS team_name 
+          FROM chats 
+          INNER JOIN clients ON chats.client_id = clients.id 
+          INNER JOIN teams ON chats.team_id = teams.id 
+          WHERE chats.archived = 'visible' 
+          AND chats.team_id IN (?)  -- Filtrar por los IDs de equipos obtenidos
+          ORDER BY chats.created_at DESC
+        `;
+        db.query(query, [teamIds], (err, result) => {
+          if (err) {
+            console.error("Error fetching chat list:", err);
+            res.status(500).json({ error: "An error occurred while fetching chat list" });
+          } else {
+            res.status(200).json({ chats: result });
+          }
+        });
       }
     });
   } catch (error) {
     console.error("Error fetching chat list:", error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while fetching chat list" });
+    res.status(500).json({ error: "An error occurred while fetching chat list" });
   }
 };
-
 // Controlador para obtener la lista de equipos
 exports.getTeamList = async (req, res) => {
   try {

@@ -9,4 +9,7 @@ router.post("/update-info/:adminId", adminController.updateAdminInfo);
 router.post("/change-password/:adminId", adminController.changeAdminPassword);
 router.post("/update-image/:adminId", adminController.updateAdminImage );
 
+router.get('/teams/:id', adminController.getAdminTeams);
+
+
 module.exports = router;
