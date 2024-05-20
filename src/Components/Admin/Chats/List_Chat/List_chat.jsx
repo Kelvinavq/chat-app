@@ -21,7 +21,9 @@ const List_chat = ({ onChatClick }) => {
     });
 
     socket.on("chatArchived", (data) => {
-      setChats((prevChats) => prevChats.filter(chat => chat.id !== data.chatId));
+      setChats((prevChats) =>
+        prevChats.filter((chat) => chat.id !== data.chatId)
+      );
     });
 
     return () => {
@@ -75,6 +77,13 @@ const List_chat = ({ onChatClick }) => {
 
   const handleOptionClick = async (option, chatId) => {
     switch (option) {
+      case "cerrar":
+        handleCloseChat(chatId);
+        break;
+
+      case "borrar":
+        handleDeleteChat(chatId);
+        break;
       case "archivar":
         markAsArchived(chatId);
         break;
@@ -98,13 +107,115 @@ const List_chat = ({ onChatClick }) => {
       );
       if (response.ok) {
         console.log("chat archivado exitosamente");
-        onChatClick(null)
+        onChatClick(null);
       } else {
         console.error("Error al archivar chat");
       }
     } catch (error) {
       console.error("Error al habilitar el equipo:", error);
     }
+  };
+
+  const handleCloseChat = (chatId) => {
+    const chat_id = chatId;
+
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¿Estás seguro de que deseas cerrar este chat?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cerrar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(
+            `http://localhost:4000/api/chats/close/${chat_id}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.ok) {
+            Swal.fire({
+              title: "Éxito",
+              text: "Chat cerrado con éxito.",
+              icon: "success",
+              didClose: () => {
+                window.location.reload();
+              },
+            });
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: "Hubo un problema al cerrar el chat.",
+              icon: "error",
+            });
+          }
+        } catch (error) {
+          console.error("Error al cerrar el chat:", error);
+          Swal.fire({
+            title: "Error",
+            text: "Hubo un problema al cerrar el chat.",
+            icon: "error",
+          });
+        }
+      }
+    });
+  };
+
+  const handleDeleteChat = (chatId) => {
+    const chat_id = chatId;
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¿Estás seguro de que deseas borrar este chat?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, borrar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(
+            `http://localhost:4000/api/chats/delete/${chat_id}`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ chat_id }),
+            }
+          );
+
+          if (response.ok) {
+            Swal.fire({
+              title: "Éxito",
+              text: "Chat borrado con éxito.",
+              icon: "success",
+              didClose: () => {
+                window.location.reload();
+              },
+            });
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: "Hubo un problema al borrar el chat.",
+              icon: "error",
+            });
+          }
+        } catch (error) {
+          console.error("Error al borrar el chat:", error);
+          Swal.fire({
+            title: "Error",
+            text: "Hubo un problema al borrar el chat.",
+            icon: "error",
+          });
+        }
+      }
+    });
   };
 
   return (
@@ -129,14 +240,17 @@ const List_chat = ({ onChatClick }) => {
                   <img src={img} alt="" />
                 </div>
                 <div className="content">
-                  
                   <h4>{chat.username}</h4>
                   <p>{chat.team_name}</p>
                 </div>
               </div>
 
               <DropdownMenu
-                options={[{ label: "Archivar", value: "archivar" }]}
+                options={[
+                  { label: "Cerrar chat", value: "cerrar" },
+                  { label: "Borrar chat", value: "borrar" },
+                  { label: "Archivar", value: "archivar" },
+                ]}
                 onOptionClick={(option) => handleOptionClick(option, chat.id)}
               />
             </div>
@@ -151,7 +265,6 @@ const DropdownMenu = ({ options, onOptionClick }) => {
   const menuRef = useRef(null);
 
   const handleOptionClick = (option, event) => {
-    event.stopPropagation();
     onOptionClick(option);
     setShowMenu(false); // Ocultar el menú después de seleccionar una opción
   };

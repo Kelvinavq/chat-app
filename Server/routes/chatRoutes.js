@@ -40,5 +40,12 @@ router.get("/get-message-team/:id", chatController.getMessagesTeam);
 // Ruta para obtener aceptar chat
 router.put("/accept-chat/:id", chatController.acceptChat);
 
+// Ruta cerrar chat
+router.put("/close/:id", chatController.closeChat);
+
+// Ruta borrar chat
+router.delete("/delete/:id", chatController.deleteChat);
+
+
 // Exportar las rutas
 module.exports = router;

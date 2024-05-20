@@ -23,6 +23,64 @@
   border-radius: 50%;
 }
 
+.screen_chat .header_chat .content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.screen_chat .header_chat .dropdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+
+  display: flex;
+  justify-content: end;
+  align-items: center;
+}
+
+.screen_chat .header_chat .dropdown .dropdown-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 120px;
+  gap: 12px;
+  right: 40px;
+  top: 10px;
+
+  height: auto;
+  background: var(--dark);
+  box-shadow: var(--shadow);
+  border-radius: 15px;
+  z-index: 9;
+  padding: 10px;
+}
+
+.screen_chat .header_chat .dropdown .dropdown-content button {
+  width: 100% !important;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+.swal2-html-container {
+  overflow: hidden !important;
+}
+
+.screen_chat .header_chat .content .button button {
+  width: 40px;
+  height: 40px;
+  background: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .screen_chat .header_chat .content h4,
 .screen_chat .header_chat .content small {
   margin: 0;
@@ -71,7 +129,7 @@
   align-items: center;
 }
 
-.screen_chat .input_area .buttons button label{
+.screen_chat .input_area .buttons button label {
   margin: 0;
   display: flex;
   justify-content: center;

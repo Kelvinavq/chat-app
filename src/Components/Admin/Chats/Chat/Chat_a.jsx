@@ -3,9 +3,12 @@ import { useState, useEffect, useRef } from "react";
 import img from "../../../../assets/logo.png";
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
 import io from "socket.io-client";
+import { MoreHorizOutlined } from "@mui/icons-material";
 const socket = io("http://localhost:4000");
+import Swal from "sweetalert2";
 
 const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const [messageInput, setMessageInput] = useState("");
@@ -156,6 +159,178 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
     }
   };
 
+  const handleOptionClick = async (option, chat) => {
+    switch (option) {
+      case "cerrar":
+        handleCloseChat(chat);
+        break;
+
+      case "borrar":
+        handleDeleteChat(chat);
+        break;
+
+      case "archivar":
+        handleArchivedChat(chat);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const handleCloseChat = (chat) => {
+    const chat_id = chat.id;
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¿Estás seguro de que deseas cerrar este chat?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, cerrar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(
+            `http://localhost:4000/api/chats/close/${chat_id}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ chat_id }),
+            }
+          );
+
+          if (response.ok) {
+            Swal.fire({
+              title: "Éxito",
+              text: "Chat cerrado con éxito.",
+              icon: "success",
+              didClose: () => {
+                window.location.reload();
+              },
+            });
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: "Hubo un problema al cerrar el chat.",
+              icon: "error",
+            });
+          }
+        } catch (error) {
+          console.error("Error al cerrar el chat:", error);
+          Swal.fire({
+            title: "Error",
+            text: "Hubo un problema al cerrar el chat.",
+            icon: "error",
+          });
+        }
+      }
+    });
+  };
+
+  const handleDeleteChat = (chat) => {
+    const chat_id = chat.id;
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¿Estás seguro de que deseas borrar este chat?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, borrar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(
+            `http://localhost:4000/api/chats/delete/${chat_id}`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ chat_id }),
+            }
+          );
+
+          if (response.ok) {
+            Swal.fire({
+              title: "Éxito",
+              text: "Chat borrado con éxito.",
+              icon: "success",
+              didClose: () => {
+                window.location.reload();
+              },
+            });
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: "Hubo un problema al borrar el chat.",
+              icon: "error",
+            });
+          }
+        } catch (error) {
+          console.error("Error al borrar el chat:", error);
+          Swal.fire({
+            title: "Error",
+            text: "Hubo un problema al borrar el chat.",
+            icon: "error",
+          });
+        }
+      }
+    });
+  };
+
+  const handleArchivedChat = (chat) => {
+    const chatId = chat.id;
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¿Estás seguro de que deseas archivar este chat?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, archivar",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(
+            `http://localhost:4000/api/chats/archive-chat/${chatId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ chatId }),
+            }
+          );
+
+          if (response.ok) {
+            Swal.fire({
+              title: "Éxito",
+              text: "Chat archivado con éxito.",
+              icon: "success",
+              didClose: () => {
+                window.location.reload();
+              },
+            });
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: "Hubo un problema al archivar el chat.",
+              icon: "error",
+            });
+          }
+        } catch (error) {
+          console.error("Error al archivar el chat:", error);
+          Swal.fire({
+            title: "Error",
+            text: "Hubo un problema al archivar el chat.",
+            icon: "error",
+          });
+        }
+      }
+    });
+  };
+
   return (
     <>
       <div className="screen_chat">
@@ -165,10 +340,25 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
           </div>
 
           <div className="content">
-            <h4>{selectedChat.username}</h4>
-            <small className="online">
-              {isClientOnline ? "Cliente en línea" : "Cliente fuera de línea"}
-            </small>
+            <div className="text">
+              <h4>{selectedChat.username}</h4>
+              <small className="online">
+                {isClientOnline ? "Cliente en línea" : "Cliente fuera de línea"}
+              </small>
+            </div>
+
+            <div className="button">
+              <DropdownMenu
+                options={[
+                  { label: "Cerrar chat", value: "cerrar" },
+                  { label: "Borrar chat", value: "borrar" },
+                  { label: "Archivar chat", value: "archivar" },
+                ]}
+                onOptionClick={(option) =>
+                  handleOptionClick(option, selectedChat)
+                }
+              />
+            </div>
           </div>
         </div>
 
@@ -190,29 +380,36 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
         </div>
 
         <div className="input_area">
-          {(selectedChat.admin_id !== null ||
-            acceptedChats[selectedChat.id]) && (
+          {selectedChat.status === "closed" ? (
             <>
-              <div className="input">
-                <input
-                  type="text"
-                  placeholder="Escribe un mensaje..."
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyDown={handleMessageInputKeyDown}
-                />
-              </div>
-
-              <div className="buttons">
-                <button className="media">
-                  <CameraAltRoundedIcon />
-                </button>
-                <button className="send" onClick={handleSendMessage}>
-                  <SendRoundedIcon />
-                </button>
-              </div>
+              <p>Chat cerrado</p>
             </>
+          ) : (
+            (selectedChat.admin_id !== null ||
+              acceptedChats[selectedChat.id]) && (
+              <>
+                <div className="input">
+                  <input
+                    type="text"
+                    placeholder="Escribe un mensaje..."
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyDown={handleMessageInputKeyDown}
+                  />
+                </div>
+
+                <div className="buttons">
+                  <button className="media">
+                    <CameraAltRoundedIcon />
+                  </button>
+                  <button className="send" onClick={handleSendMessage}>
+                    <SendRoundedIcon />
+                  </button>
+                </div>
+              </>
+            )
           )}
+          {}
           {selectedChat.admin_id === null &&
             !acceptedChats[selectedChat.id] && (
               <>
@@ -226,6 +423,47 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
         </div>
       </div>
     </>
+  );
+};
+
+const DropdownMenu = ({ options, onOptionClick }) => {
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  const handleOptionClick = (option) => {
+    onOptionClick(option);
+    setShowMenu(false); // Ocultar el menú después de seleccionar una opción
+  };
+
+  const handleClickOutside = (event) => {
+    if (menuRef.current && !menuRef.current.contains(event.target)) {
+      // Si el clic no está dentro del menú, ocultarlo
+      setShowMenu(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="dropdown" ref={menuRef}>
+      <button onClick={() => setShowMenu(!showMenu)}>
+        <MoreHorizIcon />
+      </button>
+      {showMenu && (
+        <div className="dropdown-content">
+          {options.map((option, index) => (
+            <button key={index} onClick={() => handleOptionClick(option.value)}>
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

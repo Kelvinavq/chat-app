@@ -358,7 +358,7 @@ exports.getMessagesTeam = async (req, res) => {
   }
 };
 
-// controlador para archivar el chat
+// controlador para aceptar el chat
 exports.acceptChat = async (req, res) => {
   try {
     const { id } = req.params;
@@ -380,5 +380,66 @@ exports.acceptChat = async (req, res) => {
   } catch (error) {
     console.error("Error unarchive chat:", error);
     res.status(500).json({ error: "An error occurred while accept chat" });
+  }
+};
+
+// controlador para archivar el chat
+exports.closeChat = async (req, res) => {
+  try {
+    const chat_id = req.params.id;
+
+    const messageQuery = `UPDATE chats SET status = "closed" WHERE id = ?`;
+    db.query(messageQuery, [chat_id], (err, result) => {
+      if (err) {
+        console.error("Error closing chat:", err);
+        res.status(500).json({
+          error: "An error occurred while closed chat",
+        });
+      } else {
+        res.status(200).json({
+          message: "chat closed successfully",
+        });
+      }
+      console.log(result);
+    });
+  } catch (error) {
+    console.error("Error unarchive chat:", error);
+    res.status(500).json({ error: "An error occurred while closing chat" });
+  }
+};
+
+// controlador para borrar el chat
+exports.deleteChat = async (req, res) => {
+  try {
+    const { chat_id } = req.body;
+
+    // Consulta para eliminar todos los mensajes del chat
+    const deleteMessagesQuery = "DELETE FROM messages WHERE chat_id = ?";
+    db.query(deleteMessagesQuery, [chat_id], (err, result) => {
+      if (err) {
+        console.error("Error deleting messages:", err);
+        return res.status(500).json({
+          error: "An error occurred while deleting messages",
+        });
+      }
+
+      // Consulta para eliminar el chat
+      const deleteChatQuery = "DELETE FROM chats WHERE id = ?";
+      db.query(deleteChatQuery, [chat_id], (err, result) => {
+        if (err) {
+          console.error("Error deleting chat:", err);
+          return res.status(500).json({
+            error: "An error occurred while deleting chat",
+          });
+        }
+
+        res.status(200).json({
+          message: "Chat and its messages deleted successfully",
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error deleting chat:", error);
+    res.status(500).json({ error: "An error occurred while deleting chat" });
   }
 };
