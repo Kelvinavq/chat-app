@@ -1,0 +1,111 @@
+.clients_container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+
+.clients_container .inner_container {
+  width: calc(100% - 90px);
+  height: 100%;
+}
+
+.clientes {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.clientes .title {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clientes .title h2 {
+  font-weight: 500;
+  color: var(--white);
+}
+
+.clientes .filters {
+  width: 99%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.clientes .filters .input {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  align-items: start;
+}
+
+.clientes .filters .input input {
+  width: calc(100% - 10px);
+}
+
+.clientes .counter {
+  width: 99%;
+}
+
+.clientes .counter h4 {
+  font-weight: 500;
+  color: var(--white);
+}
+
+.clientes td {
+  position: relative;
+  overflow: visible !important;
+}
+
+.clientes .dropdown {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.clientes .dropdown .dropdown-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: 120px;
+  gap: 12px;
+  right: 90px;
+  top: 30px;
+
+  height: auto;
+  background: var(--dark);
+  box-shadow: var(--shadow);
+  border-radius: 15px;
+  z-index: 9;
+  padding: 10px;
+}
+
+.clientes .dropdown .dropdown-content button {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+.swal2-html-container {
+  overflow: hidden !important;
+}
+
+@media (max-width: 920px) {
+  .clients_container .inner_container {
+    width: calc(100% - 10px);
+  }
+}

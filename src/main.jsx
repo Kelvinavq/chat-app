@@ -13,6 +13,7 @@ import Page_suspende_a from "./Pages/Admin/Page_suspende_a";
 import Page_chats_archiveds from "./Pages/Admin/Page_chats_archiveds";
 import  Page_settings  from "./Pages/Admin/Page_settings";
 import Page_settings_profile from "./Pages/Admin/Page_settings_profile";
+import Page_clients from "./Pages/Admin/Page_clients";
 
 const router = createBrowserRouter([
   // publics
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
   {
     path: "/admin/ajustes/perfil",
     element: <Page_settings_profile />,
+  },
+  {
+    path: "/admin/clientes",
+    element: <Page_clients />,
   },
 ]);
 

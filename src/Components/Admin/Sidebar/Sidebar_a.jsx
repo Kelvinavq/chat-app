@@ -5,6 +5,7 @@ import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 
 import imgUser from "../../../assets/logo.png";
 
@@ -49,8 +50,17 @@ const Sidebar_a = () => {
         </div>
         <div className="items_bottom">
           <Link
+            to={"/admin/clientes"}
+            className={`item ${isActive("/admin/clientes")} `}
+          >
+            <ManageAccountsOutlinedIcon />
+            <small>Clientes</small>
+          </Link>
+          <Link
             to={"/admin/ajustes"}
-            className={`item ${isActive("/admin/ajustes")} ${isActive("/admin/ajustes/perfil")}`}
+            className={`item ${isActive("/admin/ajustes")} ${isActive(
+              "/admin/ajustes/perfil"
+            )}`}
           >
             <SettingsOutlinedIcon />
             <small>Ajustes</small>
