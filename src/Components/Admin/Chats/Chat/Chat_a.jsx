@@ -19,6 +19,8 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const [acceptedChats, setAcceptedChats] = useState({});
   const [adminIdAcceptChat, setAdminIdAcceptChat] = useState(null);
 
+  const [image, setImage] = useState(null);
+
   useEffect(() => {
     const admin_Id = localStorage.getItem("adminId");
     const admin_Id_Integer = parseInt(admin_Id, 10);
@@ -32,12 +34,14 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       }
     };
 
-    // Suscribirse al evento 'newMessage'
+    // Suscribirse a los eventos 'newMessage' y 'newImageMessage'
     socket.on("newMessage", handleNewMessage);
+    // socket.on("newImageMessage", handleNewMessage);
 
     return () => {
       // Limpiar la suscripción al desmontar el componente
       socket.off("newMessage", handleNewMessage);
+      socket.off("newImageMessage", handleNewMessage);
     };
   }, [selectedChat, setMessages]);
 
@@ -156,6 +160,54 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       }
     } catch (error) {
       console.error("Error saving message to database:", error);
+    }
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    console.log("Image file selected:", file);
+    if (file) {
+      const message = "";
+      const timestamp = new Date().getTime();
+
+      const formData = new FormData();
+      formData.append("chatId", selectedChat.id);
+      formData.append("sender_id", sender_id);
+      formData.append("message", message);
+      formData.append("image", file);
+
+      try {
+        const response = await fetch(
+          "http://localhost:4000/api/chats/messages/upload-admin-chat",
+          {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to save message to database");
+        } else {
+          const responseData = await response.json();
+          console.log("Backend response data:", responseData);
+
+          const messageDataImage = {
+            chatId: selectedChat.id,
+            sender_id: sender_id,
+            image: responseData.imageUrl,
+            timestamp: timestamp,
+          };
+
+          socket.emit("sendMessage", messageDataImage);
+
+          // No agregamos el mensaje al estado local aquí
+          setMessageInput("");
+          setImage(null);
+        }
+      } catch (error) {
+        console.error("Error saving message to database:", error);
+      }
     }
   };
 
@@ -370,9 +422,14 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
                 message.sender_id != sender_id ? "received" : "sent"
               }`}
             >
-              <div className="message_body">
-                {message.message}
-                <span className="message_time">{message.time}</span>
+              <div
+                className={`message_body ${
+                  message.type === "image" ? "image" : "text"
+                }`}
+              >
+                {message.message && <p>{message.message}</p>}
+                {message.image && <img src={message.image} alt="Message" />}
+                {/* <span className="message_time">{message.image}</span> */}
               </div>
             </div>
           ))}
@@ -399,8 +456,17 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
                 </div>
 
                 <div className="buttons">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: "none" }}
+                    id="imageUpload"
+                  />
                   <button className="media">
-                    <CameraAltRoundedIcon />
+                    <label htmlFor="imageUpload">
+                      <CameraAltRoundedIcon />
+                    </label>
                   </button>
                   <button className="send" onClick={handleSendMessage}>
                     <SendRoundedIcon />

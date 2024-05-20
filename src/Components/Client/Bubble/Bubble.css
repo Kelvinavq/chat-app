@@ -181,6 +181,10 @@ Messages
   margin: 4px 0;
 }
 
+.messages .message img {
+  max-width: 100%;
+}
+
 .messages .message .timestamp {
   position: absolute;
   bottom: 0;

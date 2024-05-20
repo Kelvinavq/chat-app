@@ -130,6 +130,8 @@
 }
 
 .screen_chat .input_area .buttons button label {
+  width: 100%;
+  height: 100%;
   margin: 0;
   display: flex;
   justify-content: center;
@@ -183,6 +185,14 @@
 
 .received .message_body {
   border-top-left-radius: 0px;
+}
+
+.message_body img {
+  max-width: 120px;
+}
+
+.message_body.text p {
+  margin: 0;
 }
 
 .message_time {

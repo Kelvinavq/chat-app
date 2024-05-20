@@ -1,5 +1,6 @@
 const db = require("../Config/database");
 const socket = require("../Config/socket");
+const path = require("path");
 
 // Controlador para crear un nuevo chat y mensaje asociado
 
@@ -441,5 +442,58 @@ exports.deleteChat = async (req, res) => {
   } catch (error) {
     console.error("Error deleting chat:", error);
     res.status(500).json({ error: "An error occurred while deleting chat" });
+  }
+};
+
+// controlador para enviar imagenes desde el admnistrador
+exports.uploadMessageAdmin = async (req, res) => {
+  try {
+    const { chatId, sender_id, message } = req.body;
+    let filePath = null;
+    const io = socket.getIO();
+
+    if (req.file) {
+      filePath = `http://localhost/chat-app/server/public/assets/images/${req.file.filename}`;
+    }
+
+    // Insertar el nuevo mensaje en la base de datos
+    const type = filePath ? "image" : "text";
+    const image = filePath || null;
+
+    const messageQuery =
+      "INSERT INTO messages (chat_id, sender_id, message, type, image) VALUES (?, ?, ?, ?, ?)";
+    db.query(
+      messageQuery,
+      [chatId, sender_id, message || "", type, image],
+      (err, result) => {
+        if (err) {
+          console.error("Error creating message:", err);
+          res.status(500).json({
+            error: "An error occurred while creating message",
+          });
+        } else {
+          // Obtener el ID del mensaje insertado
+          const messageId = result.insertId;
+
+          res.status(200).json({
+            message: "Message created successfully",
+            messageId: messageId,
+            imageUrl: image,
+          });
+
+          // Emitir un evento de socket con la información del mensaje
+          const messageData = {
+            chatId: chatId,
+            sender_id: sender_id,
+            message: message || "",
+            image: image, // Usar la URL completa aquí
+          };
+          io.emit("newMessage", messageData);
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error creating message:", error);
+    res.status(500).json({ error: "An error occurred while creating message" });
   }
 };

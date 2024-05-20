@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../Config/uploadConfig");
 
 // Importar el controlador de chats
 const chatController = require("../controllers/chatController");
@@ -45,6 +46,9 @@ router.put("/close/:id", chatController.closeChat);
 
 // Ruta borrar chat
 router.delete("/delete/:id", chatController.deleteChat);
+
+// Ruta para cargar un mensaje (texto o imagen) desde un administrador
+router.post('/messages/upload-admin-chat', upload.single('image'), chatController.uploadMessageAdmin);
 
 
 // Exportar las rutas

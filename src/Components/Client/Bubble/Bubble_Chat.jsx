@@ -30,8 +30,9 @@ const Bubble_Chat = () => {
   const [clientID, setClientID] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
-    const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null);
   const [teams, setTeams] = useState([]);
+  const [isClientOnline, setIsClientOnline] = useState(false);
 
   const [messageWelcome, setMessageWelcome] = useState([]);
 
@@ -58,14 +59,15 @@ const Bubble_Chat = () => {
     // Listener para manejar los mensajes recibidos del servidor
     const handleNewMessage = (data) => {
       // Verificar si el mensaje no está vacío antes de agregarlo al estado de mensajes
-      if (data.message.trim() !== "") {
+      if (
+        (data.message && data.message.trim() !== "") ||
+        (data.image && data.image.trim() !== "")
+      ) {
         setMessages((prevMessages) => {
-          // Verificar si el mensaje ya existe en el estado de mensajes
           const isDuplicate = prevMessages.some((msg) => msg.id === data.id);
           if (isDuplicate) {
             return prevMessages;
           }
-          // Agregar el nuevo mensaje al estado de mensajes
           return [...prevMessages, data];
         });
       }
@@ -78,7 +80,6 @@ const Bubble_Chat = () => {
       socket.off("newMessage", handleNewMessage);
     };
   }, [isLastChatActive]);
-
   useEffect(() => {
     if (chatId) {
       socket.emit("joinChat", chatId);
@@ -440,8 +441,55 @@ const Bubble_Chat = () => {
     }
   };
 
-  const handleAttachFile = () => {
-    console.log("Attach file button clicked");
+  const handleImageUpload = async (event) => {
+    const chat_id = chatId;
+    const sender_id = clientInfo.clientInfo.id;
+    const file = event.target.files[0];
+
+    if (file) {
+      const message = "";
+      const timestamp = new Date().getTime();
+
+      const formData = new FormData();
+      formData.append("chatId", chat_id);
+      formData.append("sender_id", sender_id);
+      formData.append("message", message);
+      formData.append("image", file);
+
+      try {
+        const response = await fetch(
+          "http://localhost:4000/api/chats/messages/upload-admin-chat",
+          {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to save message to database");
+        } else {
+          const responseData = await response.json();
+          console.log("Backend response data:", responseData);
+
+          const messageDataImage = {
+            chatId: chat_id,
+            sender_id: sender_id,
+            image: responseData.imageUrl,
+            timestamp: timestamp,
+          };
+
+          setMessages([...messages, messageDataImage]);
+          socket.emit("sendMessage", messageDataImage);
+
+          // No agregamos el mensaje al estado local aquí
+          setMessageInput("");
+          setImage(null);
+        }
+      } catch (error) {
+        console.error("Error saving message to database:", error);
+      }
+    }
   };
 
   const handleSendMessage = async () => {
@@ -611,7 +659,10 @@ const Bubble_Chat = () => {
                           : ""
                       } new`}
                     >
-                      <p>{message.message}</p>
+                      {message.message && <p>{message.message}</p>}
+                      {message.image && (
+                        <img src={message.image} alt="Message" />
+                      )}
                       <div className="timestamp"></div>
                       {index === messages.length - 1 && (
                         <div ref={endOfMessagesRef}></div>
@@ -657,8 +708,17 @@ const Bubble_Chat = () => {
                 </div>
 
                 <div className="buttons">
-                  <button className="file" onClick={handleAttachFile}>
-                    <CameraAltOutlinedIcon />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: "none" }}
+                    id="imageUpload"
+                  />
+                  <button className="file">
+                    <label htmlFor="imageUpload">
+                      <CameraAltOutlinedIcon />
+                    </label>
                   </button>
                   <button
                     type="submit"
