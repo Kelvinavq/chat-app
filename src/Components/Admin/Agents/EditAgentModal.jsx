@@ -83,24 +83,16 @@ export const EditAgentModal = ({ onClose, onSubmit, agentData, teams }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (formData.password && formData.password.length < 8) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "La contraseña debe tener al menos 8 caracteres.",
-      });
-      return;
-    }
-
-    const updatedAgentData = { ...formData };
-    if (!formData.password) {
-      delete updatedAgentData.password; 
-    }
-
+    const updatedAgentData = {
+      ...formData,
+      teams: formData.teams
+        .filter((team) => team.isChecked)
+        .map((team) => team.id),
+    };
     onSubmit(updatedAgentData);
   };
-
+  
+  
   return (
     <div className="modal-overlay">
       <div className="modal" ref={modalRef}>
@@ -159,7 +151,7 @@ export const EditAgentModal = ({ onClose, onSubmit, agentData, teams }) => {
               <label>Equipos</label>
               <div className="teams-checkboxes">
                 {formData.teams.map((team) => (
-                  <div className="input">
+                  <div className="input" key={team.id}>
                     <label className="switch" htmlFor={`team-${team.id}`}>
                       <input
                         type="checkbox"

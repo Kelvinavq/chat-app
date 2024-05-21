@@ -66,11 +66,9 @@ class AgentController {
 
             if (emailRows.length > 0) {
               return db.rollback(() => {
-                res
-                  .status(400)
-                  .json({
-                    message: "El correo electrónico ya está registrado.",
-                  });
+                res.status(400).json({
+                  message: "El correo electrónico ya está registrado.",
+                });
               });
             }
 
@@ -193,7 +191,93 @@ class AgentController {
     }
   }
 
-
+  static async updateAgent(req, res) {
+    const { id } = req.params;
+    const { username, email, password, role, teams } = req.body;
+  
+    if (!username || !email || !role || !teams) {
+      return res
+        .status(400)
+        .json({ message: "Todos los campos son obligatorios." });
+    }
+  
+    try {
+      // Iniciar una transacción
+      await new Promise((resolve, reject) => {
+        db.beginTransaction(async (err) => {
+          if (err) return reject(err);
+  
+          try {
+            // Actualizar los datos del usuario
+            let updateUserQuery =
+              "UPDATE users SET username = ?, email = ?, role = ?";
+            const updateParams = [username, email, role];
+  
+            if (password) {
+              const hashedPassword = await bcrypt.hash(password, 10);
+              updateUserQuery += ", password = ?";
+              updateParams.push(hashedPassword);
+            }
+  
+            updateUserQuery += " WHERE id = ?";
+            updateParams.push(id);
+  
+            await new Promise((resolve, reject) => {
+              db.query(updateUserQuery, updateParams, (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+              });
+            });
+  
+            // Actualizar los equipos del usuario
+            const deleteTeamsQuery = "DELETE FROM user_teams WHERE user_id = ?";
+            await new Promise((resolve, reject) => {
+              db.query(deleteTeamsQuery, [id], (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+              });
+            });
+  
+            const insertTeamQuery =
+              "INSERT INTO user_teams (user_id, team_id) VALUES ?";
+            const teamValues = teams.map((teamId) => [id, teamId]);
+  
+            if (teamValues.length > 0) {
+              await new Promise((resolve, reject) => {
+                db.query(insertTeamQuery, [teamValues], (err, results) => {
+                  if (err) return reject(err);
+                  resolve(results);
+                });
+              });
+            }
+  
+            // Commit de la transacción
+            db.commit((err) => {
+              if (err) {
+                return db.rollback(() => {
+                  console.error("Error al hacer commit de la transacción:", err);
+                  res.status(500).json({ error: "Error al actualizar el agente.", dbError: err });
+                });
+              }
+  
+              res
+                .status(200)
+                .json({ message: "Usuario actualizado correctamente." });
+            });
+          } catch (error) {
+            db.rollback(() => {
+              console.error("Error actualizando el agente:", error);
+              res.status(500).json({ error: "Error al actualizar el agente.", internalError: error });
+            });
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Error actualizando el agente:", error);
+      res.status(500).json({ error: "Error al actualizar el agente.", internalError: error });
+    }
+  }
+  
 }
 
 module.exports = AgentController;

@@ -22,5 +22,9 @@ router.put("/:id/enable", AgentController.enableAgent);
 // Ruta para obtener usuarios suspendidos
 router.get("/get-all-users-suspended", AgentController.getAllAgentsSuspended);
 
+// Ruta para actualizar un agente
+router.put('/update/:id', AgentController.updateAgent);
+
 
 module.exports = router;
+

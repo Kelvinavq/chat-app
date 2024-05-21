@@ -317,7 +317,7 @@ const Agents_a = () => {
   const handleEditFormSubmit = async (updatedAgentData) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/teams/update/${updatedAgentData.id}`,
+        `http://localhost:4000/api/agents/update/${updatedAgentData.id}`, // Corrige la URL para apuntar a la ruta de agentes
         {
           method: "PUT",
           credentials: "include",
@@ -327,7 +327,7 @@ const Agents_a = () => {
           body: JSON.stringify(updatedAgentData),
         }
       );
-
+  
       if (response.ok) {
         Swal.fire({
           icon: "success",
@@ -337,11 +337,11 @@ const Agents_a = () => {
             window.location.reload();
           },
         });
-
+  
         setShowEditAgentModal(false);
       } else {
         const responseData = await response.json();
-
+  
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -359,6 +359,7 @@ const Agents_a = () => {
       });
     }
   };
+  
 
   return (
     <>
