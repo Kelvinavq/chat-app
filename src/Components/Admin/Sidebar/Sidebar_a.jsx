@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from "react";
 import "./Sidebar.css";
 import QuestionAnswerOutlinedIcon from "@mui/icons-material/QuestionAnswerOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
@@ -13,9 +14,50 @@ import { Link, useLocation } from "react-router-dom";
 
 const Sidebar_a = () => {
   const location = useLocation();
+  const [showNotificationsDropdown, setShowNotificationsDropdown] =
+    useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
+  const notificationsRef = useRef(null);
+  const profileRef = useRef(null);
   const isActive = (pathname) => {
     return location.pathname === pathname ? "active" : "";
+  };
+
+  const toggleNotificationsDropdown = () => {
+    setShowNotificationsDropdown(!showNotificationsDropdown);
+  };
+
+  const toggleProfileDropdown = () => {
+    setShowProfileDropdown(!showProfileDropdown);
+  };
+
+  const handleClickOutside = (event) => {
+    if (
+      notificationsRef.current &&
+      !notificationsRef.current.contains(event.target)
+    ) {
+      setShowNotificationsDropdown(false);
+    }
+    if (profileRef.current && !profileRef.current.contains(event.target)) {
+      setShowProfileDropdown(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    // Elimina el token de almacenamiento local
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("adminId");
+    // Redirige al usuario a la página de login
+    window.location.reload();
   };
 
   return (
@@ -65,14 +107,33 @@ const Sidebar_a = () => {
             <SettingsOutlinedIcon />
             <small>Ajustes</small>
           </Link>
-
-          <div className="item">
+          <div
+            className="item notification"
+            onClick={toggleNotificationsDropdown}
+            ref={notificationsRef}
+          >
             <NotificationsNoneOutlinedIcon />
             <small>Nuevas</small>
+            {showNotificationsDropdown && (
+              <div className="dropdown">
+                <p>Mensaje 1</p>
+                <p>Mensaje 2</p>
+                <p>Mensaje 3</p>
+              </div>
+            )}
           </div>
 
-          <div className="item">
-            <img src={imgUser} alt="" />
+          <div
+            className="item"
+            onClick={toggleProfileDropdown}
+            ref={profileRef}
+          >
+            <img src={imgUser} alt="User" />
+            {showProfileDropdown && (
+              <div className="dropdown">
+                <button onClick={handleLogout}>Cerrar sesión</button>
+              </div>
+            )}
           </div>
         </div>
       </div>

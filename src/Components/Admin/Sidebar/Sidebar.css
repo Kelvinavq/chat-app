@@ -36,6 +36,7 @@
   gap: 5px;
   cursor: pointer;
   transition: all 0.5s;
+  position: relative;
 }
 
 .sidebar .items_top .item small,
@@ -48,9 +49,18 @@
   color: var(--button);
 }
 
-.sidebar .item:hover {
+.sidebar .items_top .item:hover {
   background: var(--dark-2);
   color: var(--button);
+}
+
+.sidebar .items_bottom .item:hover svg,
+.sidebar .items_bottom .item:hover small {
+  color: var(--button);
+}
+
+.sidebar .items_bottom .item:hover {
+  background: var(--dark-2);
 }
 
 .item img {
@@ -84,50 +94,66 @@
   }
 
   .sidebar .items_top .item,
-  .sidebar .items_bottom .item{
+  .sidebar .items_bottom .item {
     width: 50px;
     height: 50px;
   }
 }
 
-
 @media (max-width: 620px) {
-    .sidebar {
-      width: 100%;
-      height: 60px;
-      bottom: 0;
-      flex-direction: row;
-      gap: 20px;
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-
-    }
-  
-    .sidebar .items_top,
-    .sidebar .items_bottom {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: start;
-      flex-direction: row;
-      gap: 40px;
-    }
-  
-    .sidebar .items_top {
-        width: 100%;
-      justify-content: center;
-    }
-  
-    .sidebar .items_top .item,
-    .sidebar .items_bottom .item{
-      width: 50px;
-      height: 50px;
-    }
-
-    .sidebar .items_bottom {
-        display: 
-        none;
-    }
-
- 
+  .sidebar {
+    width: 100%;
+    height: 60px;
+    bottom: 0;
+    flex-direction: row;
+    gap: 20px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
   }
+
+  .sidebar .items_top,
+  .sidebar .items_bottom {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    flex-direction: row;
+    gap: 40px;
+  }
+
+  .sidebar .items_top {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sidebar .items_top .item,
+  .sidebar .items_bottom .item {
+    width: 50px;
+    height: 50px;
+  }
+
+  .sidebar .items_bottom {
+    display: none;
+  }
+}
+
+.sidebar .items_bottom .item {
+  position: relative;
+}
+
+.sidebar .items_bottom .item .dropdown {
+  position: absolute;
+  right: -200px;
+  background: var(--dark);
+  box-shadow: var(--shadow);
+  border-radius: 20px;
+  padding: 12px 15px;
+}
+
+.sidebar .items_bottom .item.notification .dropdown {
+  right: -140px;
+}
+
+.sidebar .items_bottom .item .dropdown button {
+  background: transparent;
+}
