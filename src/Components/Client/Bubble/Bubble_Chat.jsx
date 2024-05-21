@@ -80,6 +80,7 @@ const Bubble_Chat = () => {
       socket.off("newMessage", handleNewMessage);
     };
   }, [isLastChatActive]);
+  
   useEffect(() => {
     if (chatId) {
       socket.emit("joinChat", chatId);

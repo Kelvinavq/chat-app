@@ -144,16 +144,38 @@
 .sidebar .items_bottom .item .dropdown {
   position: absolute;
   right: -200px;
+  bottom: 0;
   background: var(--dark);
   box-shadow: var(--shadow);
   border-radius: 20px;
   padding: 12px 15px;
 }
 
-.sidebar .items_bottom .item.notification .dropdown {
-  right: -140px;
-}
-
 .sidebar .items_bottom .item .dropdown button {
   background: transparent;
+}
+
+.sidebar .items_bottom .item.notification .dropdown {
+  width: 280px;
+  height: auto;
+  overflow-y: auto;
+  max-height: 420px;
+  right: -340px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar .items_bottom .item.notification .dropdown .noti {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.sidebar .items_bottom .item.notification .dropdown .noti p,
+.sidebar .items_bottom .item.notification .dropdown .noti h4 {
+  margin: 0;
+  margin: 5px 0;
+  text-align: left;
 }

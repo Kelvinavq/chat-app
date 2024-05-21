@@ -315,6 +315,7 @@
   
   .tabla {
     width: 99%;
+    z-index: -1;
   }
   
   .tabla table {
