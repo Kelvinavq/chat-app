@@ -25,7 +25,7 @@ const Page_chats_a = () => {
         text: "Acceso no permitido, debe iniciar sesión",
         timer: 3000,
         didClose: () => {
-          window.history.back();
+          window.location = "/login";
         },
       });
     } else {

@@ -37,8 +37,9 @@ class AuthController {
       const token = jwt.sign({ id: user.id, role: user.role }, "secret_key", { expiresIn: "1h" });
 
       const adminId = user.id;
+      const role = user.role;
 
-      res.status(200).json({ message: "Login exitoso.", token,  adminId});
+      res.status(200).json({ message: "Login exitoso.", token,  adminId, role});
     } catch (error) {
       console.error("Error en el login:", error);
       res.status(500).json({ error: "Error al iniciar sesión." });

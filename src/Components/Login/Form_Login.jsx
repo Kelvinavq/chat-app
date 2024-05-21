@@ -68,6 +68,7 @@ const Form_Login = () => {
         // Guarda el token JWT en el almacenamiento local
         localStorage.setItem("token", data.token);
         localStorage.setItem("adminId", data.adminId);
+        localStorage.setItem("role", data.role);
 
         window.location = "/admin/chats";
       } else {

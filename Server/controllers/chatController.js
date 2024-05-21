@@ -202,6 +202,7 @@ exports.getChatList = async (req, res) => {
     res.status(500).json({ error: "An error occurred while fetching chat list" });
   }
 };
+
 // Controlador para obtener la lista de equipos
 exports.getTeamList = async (req, res) => {
   try {
