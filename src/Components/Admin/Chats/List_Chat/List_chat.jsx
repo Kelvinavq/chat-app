@@ -3,6 +3,7 @@ import "./List_Chat.css";
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import img from "../../../../assets/logo.png";
+
 import io from "socket.io-client";
 const socket = io("http://localhost:4000");
 
@@ -12,6 +13,8 @@ const List_chat = ({ onChatClick }) => {
   const [chats, setChats] = useState([]);
   const [onlineStatus, setOnlineStatus] = useState({});
   const [adminTeamIds, setAdminTeamIds] = useState([]);
+  const [lastClientChatId, setLastClientChatId] = useState(null);
+  const [clientStatuses, setClientStatuses] = useState({});
 
   const adminId = localStorage.getItem("adminId");
 
@@ -45,6 +48,7 @@ const List_chat = ({ onChatClick }) => {
           const filteredChats = data.chats.filter((chat) =>
             adminTeamIds.includes(chat.team_id)
           );
+
           setChats(filteredChats);
         })
         .catch((error) => {
@@ -62,16 +66,40 @@ const List_chat = ({ onChatClick }) => {
         }
       });
 
-      socket.on("updateUserStatus", ({ clientId, isOnline }) => {
-        setOnlineStatus((prevStatus) => ({
-          ...prevStatus,
+      const handleUserStatusUpdate = ({ clientId, isOnline }) => {
+        setClientStatuses((prevStatuses) => ({
+          ...prevStatuses,
           [clientId]: isOnline,
         }));
+      };
+
+      socket.on("updateUserStatus", handleUserStatusUpdate);
+
+      socket.on("newMessage", (messageData) => {
+        // Establecer el ID del chat del cliente como el último chat del cliente
+        setLastClientChatId(messageData.chatId);
+
+        // Actualizar la marca de tiempo del último mensaje del cliente
+        setChats((prevChats) => {
+          // Encontrar el índice del chat en la lista actual
+          const chatIndex = prevChats.findIndex(
+            (chat) => chat.id === messageData.chatId
+          );
+
+          // Mover el chat del cliente a la posición uno de la lista
+          const updatedChats = [
+            prevChats[chatIndex],
+            ...prevChats.slice(0, chatIndex),
+            ...prevChats.slice(chatIndex + 1),
+          ];
+
+          return sortChatsByTime(updatedChats);
+        });
       });
 
       return () => {
         socket.off("newChatNotification");
-        socket.off("updateUserStatus");
+        socket.off("updateUserStatus", handleUserStatusUpdate);
       };
     }
   }, [adminId, adminTeamIds]);
@@ -268,10 +296,16 @@ const List_chat = ({ onChatClick }) => {
             >
               <div className="content_text">
                 <div className="img">
+                  <span
+                    className={
+                      clientStatuses[chat.client_id] ? "online" : "offline"
+                    }
+                  ></span>
                   <img src={img} alt="" />
                 </div>
                 <div className="content">
                   <h4>{chat.username}</h4>
+
                   <p>{chat.team_name}</p>
                 </div>
               </div>

@@ -99,6 +99,7 @@ io.on("connection", (socket) => {
 
     // Emitir el mensaje a todos los clientes
     io.to(data.chatId).emit("newMessage", messageData);
+    io.emit("newMessage", messageData)
 
     if (data.image) {
       io.to(data.chatId).emit("newImageMessage", messageData);
@@ -119,5 +120,3 @@ server.listen(PORT, () => {
 
 // Exportar el servidor para que pueda ser utilizado en otras partes de la aplicación
 module.exports = { server };
-
-

@@ -15,6 +15,7 @@ const Page_chats_a = () => {
     loadChatMessages(chat.id);
   };
 
+
   useEffect(() => {
     // Verificar si el adminId está presente en el localStorage
     const adminId = localStorage.getItem("adminId");
@@ -51,7 +52,7 @@ const Page_chats_a = () => {
   return (
     <>
       <div className="chats_container">
-        <Sidebar_a />
+        <Sidebar_a onChatClick={handleChatClick} />
 
         <div className="inner_container">
           <div className="chat_list">

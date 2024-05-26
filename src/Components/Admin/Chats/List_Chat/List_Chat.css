@@ -56,7 +56,7 @@
 .list_chats .items .item .content_text {
   width: 100%;
   height: 65px;
-
+  gap: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,8 +79,29 @@
 }
 
 .list_chats .items .item .img {
+  position: relative;
   display: grid;
   place-items: center;
+  border-radius: 50%;
+}
+
+.list_chats .items .item .img span.online {
+  width: 10px;
+  height: 10px;
+  background: var(--online);
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.list_chats .items .item .img span.offline {
+  width: 10px !important;
+  height: 10px !important;
+  background: var(--danger);
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .list_chats .items .item .img img {
@@ -142,7 +163,7 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  width: 120px;
+  width: 140px;
   gap: 12px;
   right: 30px;
   top: 30px;

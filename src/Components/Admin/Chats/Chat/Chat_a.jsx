@@ -6,7 +6,6 @@ import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
 import io from "socket.io-client";
-import { MoreHorizOutlined } from "@mui/icons-material";
 const socket = io("http://localhost:4000");
 import Swal from "sweetalert2";
 
