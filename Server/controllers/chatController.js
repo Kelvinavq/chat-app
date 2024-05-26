@@ -1,6 +1,9 @@
 const db = require("../Config/database");
 const socket = require("../Config/socket");
 const path = require("path");
+const fs = require('fs');
+
+
 
 // Controlador para crear un nuevo chat y mensaje asociado
 
@@ -173,9 +176,11 @@ exports.getChatList = async (req, res) => {
     db.query(teamsQuery, [adminId], (err, teamResults) => {
       if (err) {
         console.error("Error fetching user's teams:", err);
-        res.status(500).json({ error: "An error occurred while fetching user's teams" });
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching user's teams" });
       } else {
-        const teamIds = teamResults.map(team => team.team_id);
+        const teamIds = teamResults.map((team) => team.team_id);
 
         // Consultar la lista de chats con la información del cliente asociado y filtrar por los IDs de equipos obtenidos
         const query = `
@@ -190,7 +195,9 @@ exports.getChatList = async (req, res) => {
         db.query(query, [teamIds], (err, result) => {
           if (err) {
             console.error("Error fetching chat list:", err);
-            res.status(500).json({ error: "An error occurred while fetching chat list" });
+            res
+              .status(500)
+              .json({ error: "An error occurred while fetching chat list" });
           } else {
             res.status(200).json({ chats: result });
           }
@@ -199,7 +206,9 @@ exports.getChatList = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching chat list:", error);
-    res.status(500).json({ error: "An error occurred while fetching chat list" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching chat list" });
   }
 };
 
@@ -463,7 +472,7 @@ exports.deleteChat = async (req, res) => {
   }
 };
 
-// controlador para enviar imagenes desde el admnistrador
+// controlador para enviar imágenes desde el administrador
 exports.uploadMessageAdmin = async (req, res) => {
   try {
     const { chatId, sender_id, message } = req.body;
@@ -471,7 +480,13 @@ exports.uploadMessageAdmin = async (req, res) => {
     const io = socket.getIO();
 
     if (req.file) {
-      filePath = `http://localhost/chat-app/server/public/assets/images/${req.file.filename}`;
+      // Generar un nuevo nombre único para la imagen
+      const newFileName = `${Date.now()}_${req.file.originalname}`;
+      // Construir la ruta completa de la imagen
+      filePath = `http://localhost/chat-app/server/public/assets/images/${newFileName}`;
+      
+      // Renombrar el archivo en el servidor
+      fs.renameSync(req.file.path, path.join(req.file.destination, newFileName));
     }
 
     // Insertar el nuevo mensaje en la base de datos

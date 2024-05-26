@@ -83,7 +83,7 @@ const List_chat = ({ onChatClick }) => {
         setChats((prevChats) => {
           // Encontrar el índice del chat en la lista actual
           const chatIndex = prevChats.findIndex(
-            (chat) => chat.id === messageData.chatId
+            (chat) => chat.id == messageData.chatId
           );
 
           // Mover el chat del cliente a la posición uno de la lista
@@ -98,6 +98,7 @@ const List_chat = ({ onChatClick }) => {
       });
 
       return () => {
+        socket.off("newMessage");
         socket.off("newChatNotification");
         socket.off("updateUserStatus", handleUserStatusUpdate);
       };

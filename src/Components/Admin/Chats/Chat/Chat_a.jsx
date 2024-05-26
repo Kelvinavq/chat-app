@@ -8,6 +8,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import io from "socket.io-client";
 const socket = io("http://localhost:4000");
 import Swal from "sweetalert2";
+import formatMessageTime from "../../../../Config/formatMessageTime";
 
 const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const [messageInput, setMessageInput] = useState("");
@@ -30,11 +31,11 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
   useEffect(() => {
     const handleNewMessage = (messageData) => {
+      console.log("Received new message data:", messageData);
       if (messageData.chatId === selectedChat?.id) {
         setMessages((prevMessages) => [...prevMessages, messageData]);
       }
     };
-
     // Suscribirse a los eventos 'newMessage' y 'newImageMessage'
     socket.on("newMessage", handleNewMessage);
     // socket.on("newImageMessage", handleNewMessage);
@@ -127,12 +128,15 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       console.log("El mensaje está vacío");
       return;
     }
-    const timestamp = new Date().getTime();
+    const timestamp = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
     const messageData = {
       chatId: selectedChat.id,
       sender_id: sender_id,
       message,
-      timestamp: timestamp,
+      created_at: timestamp,
     };
 
     try {
@@ -162,10 +166,14 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
+
     console.log("Image file selected:", file);
     if (file) {
       const message = "";
-      const timestamp = new Date().getTime();
+      const timestamp = new Date()
+        .toISOString()
+        .replace("T", " ")
+        .substring(0, 19);
 
       const formData = new FormData();
       formData.append("chatId", selectedChat.id);
@@ -187,13 +195,12 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
           throw new Error("Failed to save message to database");
         } else {
           const responseData = await response.json();
-          console.log("Backend response data:", responseData);
 
           const messageDataImage = {
             chatId: selectedChat.id,
             sender_id: sender_id,
             image: responseData.imageUrl,
-            timestamp: timestamp,
+            created_at: timestamp,
           };
 
           socket.emit("sendMessage", messageDataImage);
@@ -432,7 +439,9 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
               >
                 {message.message && <p>{message.message}</p>}
                 {message.image && <img src={message.image} alt="Message" />}
-                {/* <span className="message_time">{message.image}</span> */}
+                <span className="message_time">
+                  {formatMessageTime(message.created_at)}
+                </span>
               </div>
             </div>
           ))}

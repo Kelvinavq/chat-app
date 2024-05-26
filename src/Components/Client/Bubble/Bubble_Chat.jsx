@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import io from "socket.io-client";
 const socket = io("http://localhost:4000");
+import formatMessageTime from "../../../Config/formatMessageTime";
 
 const Bubble_Chat = () => {
   const [showBubble, setShowBubble] = useState(false);
@@ -450,7 +451,10 @@ const Bubble_Chat = () => {
 
     if (file) {
       const message = "";
-      const timestamp = new Date().getTime();
+      const timestamp = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
 
       const formData = new FormData();
       formData.append("chatId", chat_id);
@@ -478,7 +482,7 @@ const Bubble_Chat = () => {
             chatId: chat_id,
             sender_id: sender_id,
             image: responseData.imageUrl,
-            timestamp: timestamp,
+            created_at: timestamp,
           };
 
           setMessages([...messages, messageDataImage]);
@@ -511,7 +515,10 @@ const Bubble_Chat = () => {
         console.log("No hay chat activo");
         return;
       }
-      const timestamp = new Date().getTime();
+      const timestamp = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
       // Enviar el mensaje al servidor para su registro en la base de datos
       const response = await fetch(
         "http://localhost:4000/api/chats/messages/create",
@@ -526,7 +533,7 @@ const Bubble_Chat = () => {
             sender_id: sender_id,
             message: message,
             type: "text",
-            timestamp: timestamp,
+            created_at: timestamp,
           }),
         }
       );
@@ -665,7 +672,7 @@ const Bubble_Chat = () => {
                       {message.image && (
                         <img src={message.image} alt="Message" />
                       )}
-                      <div className="timestamp"></div>
+                      <div className="timestamp"> {formatMessageTime(message.created_at)}</div>
                       {index === messages.length - 1 && (
                         <div ref={endOfMessagesRef}></div>
                       )}

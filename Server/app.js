@@ -87,22 +87,24 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendMessage", async (data) => {
-    console.log("New message:", data);
-
+    
     const messageData = {
       chatId: data.chatId,
       sender_id: data.sender_id,
       message: data.message || "",
-      image: data.image,
-      timestamp: new Date().getTime(),
+      image: data.image || "",
+      created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
     };
+    console.log("New message:", messageData);
 
     // Emitir el mensaje a todos los clientes
-    io.to(data.chatId).emit("newMessage", messageData);
+    // io.to(data.chatId).emit("newMessage", messageData);
     io.emit("newMessage", messageData)
 
     if (data.image) {
-      io.to(data.chatId).emit("newImageMessage", messageData);
+      // io.to(data.chatId).emit("newImageMessage", messageData);
+    io.emit("newImageMessage", messageData)
+      
     }
   });
 });
