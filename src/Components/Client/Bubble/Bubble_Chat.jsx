@@ -44,7 +44,7 @@ const Bubble_Chat = () => {
   };
 
   const handleOpenChat = () => {
-    setShowChat(true);
+    // setShowChat(true);
     setShowBubble(true);
   };
 
@@ -80,7 +80,7 @@ const Bubble_Chat = () => {
       socket.off("newMessage", handleNewMessage);
     };
   }, [isLastChatActive]);
-  
+
   useEffect(() => {
     if (chatId) {
       socket.emit("joinChat", chatId);
@@ -178,6 +178,7 @@ const Bubble_Chat = () => {
         // Emitir evento de cliente en línea
         socket.emit("clientOnline", data.clientId);
       } else {
+        setClientID(null);
         throw new Error("Failed to check client registration");
       }
     } catch (error) {
@@ -285,13 +286,12 @@ const Bubble_Chat = () => {
         }
       );
 
+      const clientData = await response.json();
       if (response.ok) {
-        const clientData = await response.json();
         setClientInfo(clientData);
       } else if (response.status === 404) {
-        // Manejar el caso en el que no se encuentra el cliente
-        console.error("Client not found");
-        // Mostrar un mensaje de error o redirigir a una página de error
+        setClientInfo(clientData);
+        setClientInfo(null);
       } else {
         // Otros errores de la solicitud
         console.error("Error getting client info:", response.statusText);
@@ -303,6 +303,7 @@ const Bubble_Chat = () => {
   };
 
   const handleBubbleClick = () => {
+
     if (!isRegistered) {
       setShowRegisterForm(true);
       setShowBubble(true);
@@ -608,19 +609,19 @@ const Bubble_Chat = () => {
 
                   <input
                     type="text"
-                    placeholder="Username"
+                    placeholder="Ingrese su usuario"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                   />
                   <input
                     type="email"
-                    placeholder="Email"
+                    placeholder="Correo electronico"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                   <input
                     type="password"
-                    placeholder="Password"
+                    placeholder="Contraseña"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />

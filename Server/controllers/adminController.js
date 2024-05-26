@@ -2,6 +2,7 @@ const db = require("../Config/database");
 const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcrypt");
+
 const multer = require("multer");
 
 // Configuración de multer para la carga de archivos

@@ -5,63 +5,99 @@ exports.register = async (req, res) => {
   const { username, email, password, deviceId } = req.body;
 
   try {
-    // Encriptar la contraseña
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Verificar si el cliente ya existe en la base de datos
+    const clientQuery = 'SELECT * FROM clients WHERE email = ?';
+    const client = await new Promise((resolve, reject) => {
+      db.query(clientQuery, [email], (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results[0]);
+        }
+      });
+    });
 
-    // Insertar los datos del cliente en la tabla 'clients' con la contraseña encriptada
-    const clientInsertQuery = `
-      INSERT INTO clients (username, email, password)
-      VALUES (?, ?, ?)
-    `;
-    const clientInsertResult = await new Promise((resolve, reject) => {
-      db.query(
-        clientInsertQuery,
-        [username, email, hashedPassword],
-        (err, result) => {
+    if (client) {
+      // Si el cliente existe, verificar la contraseña
+      const isPasswordCorrect = await bcrypt.compare(password, client.password);
+      if (isPasswordCorrect && client.username === username) {
+        // Registrar el dispositivo para el cliente existente
+        const deviceInsertQuery = `
+          INSERT INTO devices (client_id, device_fingerprint)
+          VALUES (?, ?)
+        `;
+        await new Promise((resolve, reject) => {
+          db.query(deviceInsertQuery, [client.id, deviceId], (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+
+        return res.status(200).json({ message: 'Device registered to existing user successfully' });
+      } else {
+        return res.status(400).json({ error: 'Username, email or password is incorrect' });
+      }
+    } else {
+      // Si el cliente no existe, crear un nuevo registro de cliente
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const clientInsertQuery = `
+        INSERT INTO clients (username, email, password)
+        VALUES (?, ?, ?)
+      `;
+      const clientInsertResult = await new Promise((resolve, reject) => {
+        db.query(
+          clientInsertQuery,
+          [username, email, hashedPassword],
+          (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+      });
+
+      const clientId = clientInsertResult.insertId;
+
+      const deviceInsertQuery = `
+        INSERT INTO devices (client_id, device_fingerprint)
+        VALUES (?, ?)
+      `;
+      await new Promise((resolve, reject) => {
+        db.query(deviceInsertQuery, [clientId, deviceId], (err, result) => {
           if (err) {
             reject(err);
           } else {
             resolve(result);
           }
-        }
-      );
-    });
-
-    // Obtener el ID del cliente recién insertado
-    const clientId = clientInsertResult.insertId;
-
-    // Insertar los datos del dispositivo en la tabla 'devices', asociándolo con el cliente
-    const deviceInsertQuery = `
-      INSERT INTO devices (client_id, device_fingerprint)
-      VALUES (?, ?)
-    `;
-    await new Promise((resolve, reject) => {
-      db.query(deviceInsertQuery, [clientId, deviceId], (err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result);
-        }
+        });
       });
-    });
 
-    // Envíar una respuesta exitosa
-    res
-      .status(200)
-      .json({ message: "User and device registered successfully" });
+      res.status(200).json({ message: 'User and device registered successfully' });
+    }
   } catch (error) {
-    console.error("Error registering user and device:", error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while registering user and device" });
+    console.error('Error registering user and device:', error);
+    res.status(500).json({ error: 'An error occurred while registering user and device' });
   }
 };
+
 
 // Método para verificar el estado de registro del cliente y su dispositivo
 exports.checkRegistration = async (req, res) => {
   try {
     // Recuperar el deviceId enviado desde el frontend
     const deviceId = req.query.deviceId;
+
+    if (!deviceId) {
+      return res.status(400).json({
+        error: "deviceId is required"
+      });
+    }
 
     // Consultar si existe un dispositivo con la huella digital proporcionada
     const deviceQuery = "SELECT * FROM devices WHERE device_fingerprint = ?";
@@ -185,11 +221,11 @@ exports.getClientInfo = async (req, res) => {
             const clientInfo = clientRows[0];
             res.status(200).json({ clientInfo });
           } else {
-            res.status(404).json({ error: "Client not found" });
+            return res.status(404).json({ clientInfo: null });
           }
         });
       } else {
-        res.status(404).json({ error: "Client ID not found" });
+        return res.status(404).json({ clientInfo: null });
       }
     });
   } catch (error) {
