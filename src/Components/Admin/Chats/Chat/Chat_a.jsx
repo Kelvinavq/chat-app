@@ -19,6 +19,8 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const [acceptedChats, setAcceptedChats] = useState({});
   const [adminIdAcceptChat, setAdminIdAcceptChat] = useState(null);
 
+  const [clientStatuses, setClientStatuses] = useState({});
+
   const [image, setImage] = useState(null);
 
   useEffect(() => {
@@ -60,22 +62,18 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
   useEffect(() => {
     const handleUserStatusUpdate = ({ clientId, isOnline }) => {
-      if (clientID === clientId) {
-        setIsClientOnline(isOnline);
-      }
+      setClientStatuses((prevStatuses) => ({
+        ...prevStatuses,
+        [clientId]: isOnline,
+      }));
     };
 
-    // Escuchar el evento 'updateUserStatus' del servidor WebSocket
     socket.on("updateUserStatus", handleUserStatusUpdate);
 
-    // Enviar el evento "clientOnline" cuando el cliente se conecta al chat
-    socket.emit("clientOnline", clientID);
-
     return () => {
-      // Limpiar la suscripción al desmontar el componente
       socket.off("updateUserStatus", handleUserStatusUpdate);
     };
-  }, [clientID]);
+  }, []);
 
   useEffect(() => {
     // Desplazarse al final de los mensajes cuando se actualicen
@@ -394,8 +392,14 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
           <div className="content">
             <div className="text">
               <h4>{selectedChat.username}</h4>
-              <small className="online">
-                {isClientOnline ? "Cliente en línea" : "Cliente fuera de línea"}
+              <small
+                className={
+                  clientStatuses[selectedChat.client_id] ? "online" : "offline"
+                }
+              >
+                {clientStatuses[selectedChat.client_id]
+                  ? "En línea"
+                  : "Desconectado"}
               </small>
             </div>
 

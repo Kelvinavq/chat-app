@@ -50,6 +50,8 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
+const onlineClients = {};
+
 // Configuración del WebSocket
 io.on("connection", (socket) => {
   console.log("New WebSocket connection");
@@ -57,6 +59,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     if (socket.clientId) {
       console.log(`Client ${socket.clientId} disconnected`);
+      delete onlineClients[socket.clientId];
       io.emit("updateUserStatus", {
         clientId: socket.clientId,
         isOnline: false,
@@ -68,8 +71,9 @@ io.on("connection", (socket) => {
 
   socket.on("clientOnline", (clientId) => {
     socket.clientId = clientId;
-    console.log(`Clienttt ${clientId} is online`);
-    io.emit("updateUserStatus", { clientId, isOnline: true }); // Enviar a todos los clientes
+    onlineClients[clientId] = true;
+    console.log(`Client ${clientId} is online`);
+    io.emit("updateUserStatus", { clientId, isOnline: true });
   });
 
   socket.on("joinChat", (chatId) => {
