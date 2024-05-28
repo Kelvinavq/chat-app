@@ -5,6 +5,8 @@ import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
+import Config from "../../../../Config/Config";
+
 import io from "socket.io-client";
 const socket = io("http://localhost:4000");
 import Swal from "sweetalert2";
@@ -22,6 +24,9 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const [clientStatuses, setClientStatuses] = useState({});
 
   const [image, setImage] = useState(null);
+
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
 
   useEffect(() => {
     const admin_Id = localStorage.getItem("adminId");
@@ -89,7 +94,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const handleAcceptChat = async (chatId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/chats/accept-chat/${chatId}`,
+        `${Config.server_api}api/chats/accept-chat/${chatId}`,
         {
           method: "PUT",
           credentials: "include",
@@ -141,7 +146,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/api/chats/messages/create-admin",
+        `${Config.server_api}api/chats/messages/create-admin`,
         {
           method: "POST",
           credentials: "include",
@@ -183,7 +188,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
       try {
         const response = await fetch(
-          "http://localhost:4000/api/chats/messages/upload-admin-chat",
+          `${Config.server_api}api/chats/messages/upload-admin-chat`,
           {
             method: "POST",
             credentials: "include",
@@ -247,7 +252,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       if (result.isConfirmed) {
         try {
           const response = await fetch(
-            `http://localhost:4000/api/chats/close/${chat_id}`,
+            `${Config.server_api}api/chats/close/${chat_id}`,
             {
               method: "PUT",
               headers: {
@@ -298,7 +303,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       if (result.isConfirmed) {
         try {
           const response = await fetch(
-            `http://localhost:4000/api/chats/delete/${chat_id}`,
+            `${Config.server_api}api/chats/delete/${chat_id}`,
             {
               method: "DELETE",
               headers: {
@@ -349,7 +354,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       if (result.isConfirmed) {
         try {
           const response = await fetch(
-            `http://localhost:4000/api/chats/archive-chat/${chatId}`,
+            `${Config.server_api}api/chats/archive-chat/${chatId}`,
             {
               method: "PUT",
               headers: {
@@ -385,6 +390,11 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
         }
       }
     });
+  };
+
+  const handleImageClick = (imageUrl) => {
+    setSelectedImageUrl(imageUrl);
+    setShowImageModal(true);
   };
 
   return (
@@ -438,7 +448,16 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
                 }`}
               >
                 {message.message && <p>{message.message}</p>}
-                {message.image && <img src={message.image} alt="Message" />}
+
+                {message.image && (
+                  <div className="message_image_container">
+                    <img
+                      src={message.image}
+                      alt="Message"
+                      onClick={() => handleImageClick(message.image)}
+                    />
+                  </div>
+                )}
                 <span className="message_time">
                   {formatMessageTime(message.created_at)}
                 </span>
@@ -499,6 +518,14 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
               </>
             )}
         </div>
+        {showImageModal && (
+          <div className="image_modal" onClick={() => setShowImageModal(false)}>
+            <div className="image_modal_content">
+              <img src={selectedImageUrl} alt="Selected Image" />
+              <button onClick={() => setShowImageModal(false)}>Cerrar</button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

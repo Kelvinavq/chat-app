@@ -40,7 +40,7 @@ const Agents_a = () => {
   useEffect(() => {
     const obtenerEquipos = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/api/teams`, {
+        const response = await fetch(`${Config.server_api}api/teams`, {
           method: "GET",
           mode: "cors",
           credentials: "include",
@@ -144,7 +144,7 @@ const Agents_a = () => {
   const handleAgentFormSubmit = async (newAgentData) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/agents/register`,
+        `${Config.server_api}api/agents/register`,
         {
           method: "POST",
           credentials: "include",
@@ -219,7 +219,7 @@ const Agents_a = () => {
   const fetchAgentDetails = async (agentId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/agents/details/${agentId}`
+        `${Config.server_api}api/agents/details/${agentId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -236,7 +236,7 @@ const Agents_a = () => {
   const markAsInactive = async (agentId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/agents/${agentId}/disable`,
+        `${Config.server_api}api/agents/${agentId}/disable`,
         {
           method: "PUT",
           headers: {
@@ -264,7 +264,7 @@ const Agents_a = () => {
   const markAsActive = async (agentId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/agents/${agentId}/enable`,
+        `${Config.server_api}api/agents/${agentId}/enable`,
         {
           method: "PUT",
           headers: {
@@ -292,7 +292,7 @@ const Agents_a = () => {
   const fetchTeamsWithUserStatus = async (agentId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/teams/get-teams-user/${agentId}`
+        `${Config.server_api}api/teams/get-teams-user/${agentId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -317,7 +317,7 @@ const Agents_a = () => {
   const handleEditFormSubmit = async (updatedAgentData) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/agents/update/${updatedAgentData.id}`, // Corrige la URL para apuntar a la ruta de agentes
+        `${Config.server_api}api/agents/update/${updatedAgentData.id}`, // Corrige la URL para apuntar a la ruta de agentes
         {
           method: "PUT",
           credentials: "include",

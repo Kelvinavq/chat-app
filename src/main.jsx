@@ -48,11 +48,11 @@ const router = createBrowserRouter([
     element: <Page_chats_archiveds />,
   },
   {
-    path: "/admin/ajustes",
+    path: "/admin/ajustes/mensajes",
     element: <Page_settings />,
   },
   {
-    path: "/admin/ajustes/perfil",
+    path: "/admin/ajustes",
     element: <Page_settings_profile />,
   },
   {

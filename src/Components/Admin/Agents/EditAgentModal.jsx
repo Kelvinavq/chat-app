@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Swal from "sweetalert2";
 import CloseIcon from "@mui/icons-material/Close";
+import Config from "../../../Config/Config";
 
 export const EditAgentModal = ({ onClose, onSubmit, agentData, teams }) => {
   const modalRef = useRef();
@@ -26,7 +27,7 @@ export const EditAgentModal = ({ onClose, onSubmit, agentData, teams }) => {
     const fetchAdminTeams = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/admin/teams/${userId}`
+          `${Config.server_api}api/admin/teams/${userId}`
         );
         if (response.ok) {
           const data = await response.json();

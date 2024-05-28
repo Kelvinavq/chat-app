@@ -171,7 +171,6 @@
 }
 
 .message_body {
-
   max-width: 70%;
   min-width: 75px;
   padding: 8px 12px 17px 12px;
@@ -216,3 +215,4 @@
 .received .profile_pic {
   float: left;
 }
+

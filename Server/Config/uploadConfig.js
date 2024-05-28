@@ -1,7 +1,6 @@
 const multer = require('multer');
 const path = require('path');
 const sharp = require('sharp'); 
-const fs = require('fs');
 
 // Configura el almacenamiento de Multer
 const storage = multer.diskStorage({
@@ -46,7 +45,7 @@ const processImage = (req, res, next) => {
           next(err);
         } else {
           // Elimina el archivo original
-          fs.unlinkSync(req.file.path);
+          // fs.unlinkSync(req.file.path);
 
           // Cambia la ruta al archivo comprimido
           req.file.path = compressedFilePath;

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Archived.css";
 
+import Config from "../../../Config/Config";
+
 export const Archiveds = () => {
   const [archiveds, setArchiveds] = useState([]);
   const [counter, setCounter] = useState(0);
@@ -10,7 +12,7 @@ export const Archiveds = () => {
     const fetchChats = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/chats/chats-archiveds`,
+          `${Config.server_api}api/chats/chats-archiveds`,
           {
             method: "GET",
             mode: "cors",
@@ -65,7 +67,7 @@ export const Archiveds = () => {
   const markAsVisible = async (chatId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/chats/mark-chat-visible/${chatId}`,
+        `${Config.server_api}api/chats/mark-chat-visible/${chatId}`,
         {
           method: "PUT",
           headers: {

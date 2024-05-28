@@ -1,9 +1,7 @@
 const db = require("../Config/database");
 const socket = require("../Config/socket");
 const path = require("path");
-const fs = require('fs');
-
-
+const fs = require("fs");
 
 // Controlador para crear un nuevo chat y mensaje asociado
 
@@ -151,9 +149,20 @@ exports.createMessage = async (req, res) => {
             .status(500)
             .json({ error: "An error occurred while creating message" });
         } else {
+          // Obtener el ID del mensaje insertado
+          const messageId = result.insertId;
+
+          // Actualizar la columna last_updated_at en la tabla chats
+          const updateQuery =
+            "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+          db.query(updateQuery, [chatId], (err, result) => {
+            if (err) {
+              console.error("Error updating last_updated_at:", err);
+            }
+          });
           res.status(200).json({
             message: "Message created successfully",
-            messageId: result.insertId,
+            messageId: messageId,
           });
         }
       }
@@ -190,7 +199,7 @@ exports.getChatList = async (req, res) => {
           INNER JOIN teams ON chats.team_id = teams.id 
           WHERE chats.archived = 'visible' 
           AND chats.team_id IN (?)  -- Filtrar por los IDs de equipos obtenidos
-          ORDER BY chats.created_at DESC
+          ORDER BY chats.last_updated_at DESC
         `;
         db.query(query, [teamIds], (err, result) => {
           if (err) {
@@ -251,6 +260,16 @@ exports.createMessageAdmin = async (req, res) => {
       } else {
         // Obtener el ID del mensaje insertado
         const messageId = result.insertId;
+
+        // Actualizar la columna last_updated_at en la tabla chats
+        const updateQuery =
+          "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        db.query(updateQuery, [chatId], (err, result) => {
+          if (err) {
+            console.error("Error updating last_updated_at:", err);
+          }
+        });
+
         res.status(200).json({
           message: "Message created successfully",
           messageId: messageId,
@@ -268,7 +287,7 @@ exports.archiveChat = async (req, res) => {
   try {
     const { chatId } = req.body;
     const io = socket.getIO();
-    const messageQuery = "UPDATE chats SET archived = 'archived' WHERE id = ?";
+    const messageQuery = "UPDATE chats SET archived = 'archived', status = 'closed' WHERE id = ?";
     db.query(messageQuery, [chatId], (err, result) => {
       if (err) {
         console.error("Error archiving chat:", err);
@@ -484,9 +503,12 @@ exports.uploadMessageAdmin = async (req, res) => {
       const newFileName = `${Date.now()}_${req.file.originalname}`;
       // Construir la ruta completa de la imagen
       filePath = `http://localhost/chat-app/server/public/assets/images/${newFileName}`;
-      
+
       // Renombrar el archivo en el servidor
-      fs.renameSync(req.file.path, path.join(req.file.destination, newFileName));
+      fs.renameSync(
+        req.file.path,
+        path.join(req.file.destination, newFileName)
+      );
     }
 
     // Insertar el nuevo mensaje en la base de datos
@@ -507,6 +529,14 @@ exports.uploadMessageAdmin = async (req, res) => {
         } else {
           // Obtener el ID del mensaje insertado
           const messageId = result.insertId;
+
+          const updateQuery =
+          "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        db.query(updateQuery, [chatId], (err, result) => {
+          if (err) {
+            console.error("Error updating last_updated_at:", err);
+          }
+        });
 
           res.status(200).json({
             message: "Message created successfully",

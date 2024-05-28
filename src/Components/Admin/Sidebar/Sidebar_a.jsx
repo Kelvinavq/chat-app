@@ -9,6 +9,7 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 
 import imgUser from "../../../assets/logo.png";
+import Config from "../../../Config/Config";
 
 import { Link, useLocation } from "react-router-dom";
 
@@ -23,6 +24,7 @@ const Sidebar_a = ({ onChatClick }) => {
 
   const [chats, setChats] = useState([]);
   const adminId = localStorage.getItem("adminId");
+  const role = localStorage.getItem("role");
   const [adminTeamIds, setAdminTeamIds] = useState([]);
   const [onlineStatus, setOnlineStatus] = useState({});
 
@@ -73,7 +75,7 @@ const Sidebar_a = ({ onChatClick }) => {
     const fetchAdminTeams = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/admin/teams/${adminId}`
+          `${Config.server_api}api/admin/teams/${adminId}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -93,7 +95,7 @@ const Sidebar_a = ({ onChatClick }) => {
 
   useEffect(() => {
     if (adminTeamIds.length > 0) {
-      fetch(`http://localhost:4000/api/chats/list/${adminId}`)
+      fetch(`${Config.server_api}api/chats/list/${adminId}`)
         .then((response) => response.json())
         .then((data) => {
           const filteredChats = data.chats.filter((chat) =>
@@ -147,32 +149,40 @@ const Sidebar_a = ({ onChatClick }) => {
             <small>Chats</small>
           </Link>
 
-          <Link
-            to={"/admin/equipos"}
-            className={`item ${isActive("/admin/equipos")} 
+          {role === "admin" && (
+            <>
+              <Link
+                to={"/admin/equipos"}
+                className={`item ${isActive("/admin/equipos")} 
             ${isActive("/admin/agentes")} 
             ${isActive("/admin/agentes-suspendidos")}`}
-          >
-            <GroupOutlinedIcon />
-            <small>Equipos</small>
-          </Link>
+              >
+                <GroupOutlinedIcon />
+                <small>Equipos</small>
+              </Link>
 
-          <Link
-            to={"/admin/archivados"}
-            className={`item ${isActive("/admin/archivados")}`}
-          >
-            <ArchiveOutlinedIcon />
-            <small>Archivados</small>
-          </Link>
+              <Link
+                to={"/admin/archivados"}
+                className={`item ${isActive("/admin/archivados")}`}
+              >
+                <ArchiveOutlinedIcon />
+                <small>Archivados</small>
+              </Link>
+            </>
+          )}
+
         </div>
         <div className="items_bottom">
-          <Link
-            to={"/admin/clientes"}
-            className={`item ${isActive("/admin/clientes")} `}
-          >
-            <ManageAccountsOutlinedIcon />
-            <small>Clientes</small>
-          </Link>
+          {role === "admin" && (
+            <Link
+              to={"/admin/clientes"}
+              className={`item ${isActive("/admin/clientes")} `}
+            >
+              <ManageAccountsOutlinedIcon />
+              <small>Clientes</small>
+            </Link>
+          )}
+
           <Link
             to={"/admin/ajustes"}
             className={`item ${isActive("/admin/ajustes")} ${isActive(

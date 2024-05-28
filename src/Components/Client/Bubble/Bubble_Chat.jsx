@@ -37,6 +37,10 @@ const Bubble_Chat = () => {
 
   const [messageWelcome, setMessageWelcome] = useState([]);
 
+  
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+
   const endOfMessagesRef = useRef(null);
 
   const handleCloseChat = () => {
@@ -117,7 +121,7 @@ const Bubble_Chat = () => {
   const fetchChatMessages = async (chatId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/chats/${chatId}/messages`,
+        `${Config.server_api}api/chats/${chatId}/messages`,
         {
           method: "GET",
           credentials: "include",
@@ -161,7 +165,7 @@ const Bubble_Chat = () => {
       const deviceId = localStorage.getItem("deviceId") || uuidv4();
       // solicitud al backend para verificar el estado de registro del cliente
       const response = await fetch(
-        `http://localhost:4000/api/users/check-registration?deviceId=${deviceId}`,
+        `${Config.server_api}api/users/check-registration?deviceId=${deviceId}`,
         {
           method: "GET",
           credentials: "include",
@@ -192,7 +196,7 @@ const Bubble_Chat = () => {
       const deviceId = localStorage.getItem("deviceId") || uuidv4();
       // Solicitud al backend para verificar el estado del último chat
       const response = await fetch(
-        `http://localhost:4000/api/users/check-last-chat?deviceId=${deviceId}`,
+        `${Config.server_api}api/users/check-last-chat?deviceId=${deviceId}`,
         {
           method: "GET",
           credentials: "include",
@@ -224,7 +228,7 @@ const Bubble_Chat = () => {
 
   const getTeamList = async () => {
     try {
-      const url = new URL(`http://localhost:4000/api/chats/list-team`);
+      const url = new URL(`${Config.server_api}api/chats/list-team`);
 
       const response = await fetch(url, {
         method: "GET",
@@ -249,7 +253,7 @@ const Bubble_Chat = () => {
 
   const getMessagesWerlcome = async () => {
     try {
-      const url = new URL(`http://localhost:4000/api/chats/get-welcome`);
+      const url = new URL(`${Config.server_api}api/chats/get-welcome`);
 
       const response = await fetch(url, {
         method: "GET",
@@ -277,7 +281,7 @@ const Bubble_Chat = () => {
       const deviceId = localStorage.getItem("deviceId") || uuidv4();
       // Solicitud al backend para obtener la información del cliente
       const response = await fetch(
-        `http://localhost:4000/api/users/client-info?deviceId=${deviceId}`,
+        `${Config.server_api}users/client-info?deviceId=${deviceId}`,
         {
           method: "GET",
           credentials: "include",
@@ -330,7 +334,7 @@ const Bubble_Chat = () => {
 
     try {
       // Enviar los datos del formulario al backend para registrar al usuario
-      const response = await fetch("http://localhost:4000/api/users/register", {
+      const response = await fetch(`${Config.server_api}api/users/register`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -372,7 +376,7 @@ const Bubble_Chat = () => {
       const autoMessages = await getAutoMessagesByTeamId(id);
 
       const response = await fetch(
-        "http://localhost:4000/api/chats/create-chat",
+        `${Config.server_api}api/chats/create-chat`,
         {
           method: "POST",
           credentials: "include",
@@ -464,7 +468,7 @@ const Bubble_Chat = () => {
 
       try {
         const response = await fetch(
-          "http://localhost:4000/api/chats/messages/upload-admin-chat",
+          `${Config.server_api}api/chats/messages/upload-admin-chat`,
           {
             method: "POST",
             credentials: "include",
@@ -500,6 +504,11 @@ const Bubble_Chat = () => {
 
   const handleSendMessage = async () => {
     try {
+      const timestamp = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
+
       const message = messageInput;
       const chat_id = chatId;
       const sender_id = clientInfo.clientInfo.id;
@@ -515,13 +524,11 @@ const Bubble_Chat = () => {
         console.log("No hay chat activo");
         return;
       }
-      const timestamp = new Date()
-      .toISOString()
-      .replace("T", " ")
-      .substring(0, 19);
-      // Enviar el mensaje al servidor para su registro en la base de datos
+
+  
+
       const response = await fetch(
-        "http://localhost:4000/api/chats/messages/create",
+        `${Config.server_api}api/chats/messages/create`,
         {
           method: "POST",
           credentials: "include",
@@ -545,13 +552,19 @@ const Bubble_Chat = () => {
         setMessageInput("");
 
         // Actualizar el estado de los mensajes con el nuevo mensaje enviado
-        setMessages([...messages, { sender_id: sender_id, message: message }]);
+        setMessages([...messages, { sender_id: sender_id, message: message, created_at: timestamp }]);
         socket.emit("sendMessage", { chatId, sender_id, message, timestamp });
       }
     } catch (error) {
       console.error("Error sending message:", error);
     }
   };
+
+  const handleImageClick = (imageUrl) => {
+    setSelectedImageUrl(imageUrl);
+    setShowImageModal(true);
+  };
+
 
   useEffect(() => {
     if (chatId) {
@@ -562,7 +575,7 @@ const Bubble_Chat = () => {
   const getAutoMessagesByTeamId = async (id) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/chats/get-message-team/${id}`,
+        `${Config.server_api}api/chats/get-message-team/${id}`,
         {
           method: "GET",
           credentials: "include",
@@ -670,7 +683,7 @@ const Bubble_Chat = () => {
                     >
                       {message.message && <p>{message.message}</p>}
                       {message.image && (
-                        <img src={message.image} alt="Message" />
+                        <img src={message.image} alt="Message" onClick={() => handleImageClick(message.image)} />
                       )}
                       <div className="timestamp"> {formatMessageTime(message.created_at)}</div>
                       {index === messages.length - 1 && (
@@ -742,6 +755,14 @@ const Bubble_Chat = () => {
           </div>
         </div>
       )}
+        {showImageModal && (
+          <div className="image_modal" onClick={() => setShowImageModal(false)}>
+            <div className="image_modal_content">
+              <img src={selectedImageUrl} alt="Selected Image" />
+              <button onClick={() => setShowImageModal(false)}>Cerrar</button>
+            </div>
+          </div>
+        )}
     </>
   );
 };

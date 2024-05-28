@@ -76,6 +76,12 @@ io.on("connection", (socket) => {
     io.emit("updateUserStatus", { clientId, isOnline: true });
   });
 
+  socket.on("adminOnline", (adminId) => {
+    socket.adminId = adminId;
+    socket.join("adminRoom");
+    console.log(`Admin ${adminId} is online`);
+  });
+
   socket.on("joinChat", (chatId) => {
     socket.join(chatId);
     console.log(`User joined chat: ${chatId}`);
@@ -87,24 +93,29 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendMessage", async (data) => {
-    
     const messageData = {
       chatId: data.chatId,
       sender_id: data.sender_id,
-      message: data.message || "",
-      image: data.image || "",
-      created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      message: data.message,
+      image: data.image,
+      created_at: new Date().toISOString().replace("T", " ").substring(0, 19),
     };
     console.log("New message:", messageData);
 
     // Emitir el mensaje a todos los clientes
     // io.to(data.chatId).emit("newMessage", messageData);
-    io.emit("newMessage", messageData)
+    // io.emit("newMessage", messageData)
+
+    io.to("adminRoom").emit("newMessage", messageData);
+    io.to(data.chatId).emit("newMessage", messageData);
+
 
     if (data.image) {
       // io.to(data.chatId).emit("newImageMessage", messageData);
-    io.emit("newImageMessage", messageData)
-      
+      // io.emit("newImageMessage", messageData)
+
+      io.to("adminRoom").emit("newImageMessage", messageData);
+      io.to(data.chatId).emit("newImageMessage", messageData);
     }
   });
 });

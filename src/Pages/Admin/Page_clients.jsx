@@ -4,10 +4,28 @@ import Client from "../../Components/Admin/Clients/Client";
 
 const Page_clients = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [roleStatus, setrole] = useState(false);
 
   useEffect(() => {
     // Verificar si el adminId está presente en el localStorage
     const adminId = localStorage.getItem("adminId");
+    const role = localStorage.getItem("role");
+
+    
+    if (role === "admin") {
+      setrole(true);
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Acceso no permitido",
+        timer: 3000,
+        didClose: () => {
+          window.location.back();
+        },
+      });
+    }
+
     if (!adminId) {
       Swal.fire({
         icon: "error",
@@ -23,9 +41,11 @@ const Page_clients = () => {
     }
   }, []);
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn || !roleStatus) {
     return null;
   }
+
+  
   return (
     <>
       <div className="clients_container">

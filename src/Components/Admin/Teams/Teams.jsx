@@ -18,7 +18,7 @@ const Teams = () => {
   useEffect(() => {
     const obtenerEquipos = async () => {
       try {
-        const url = new URL(`http://localhost:4000/api/teams/info`);
+        const url = new URL(`${Config.server_api}api/teams/info`);
 
         const response = await fetch(url, {
           method: "GET",
@@ -71,7 +71,7 @@ const Teams = () => {
     if (teamName) {
       // Realizar el fetch al backend para añadir el equipo
       try {
-        const response = await fetch(`http://localhost:4000/api/add-team`, {
+        const response = await fetch(`${Config.server_api}api/add-team`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -134,7 +134,7 @@ const Teams = () => {
   const fetchTeamDetails = async (teamId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/teams/details/${teamId}`
+        `${Config.server_api}api/teams/details/${teamId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -152,7 +152,7 @@ const Teams = () => {
   const markAsInactive = async (teamId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/teams/${teamId}/disable`,
+        `${Config.server_api}api/teams/${teamId}/disable`,
         {
           method: "PUT",
           headers: {
@@ -180,7 +180,7 @@ const Teams = () => {
   const markAsActive = async (teamId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/teams/${teamId}/enable`,
+        `${Config.server_api}api/teams/${teamId}/enable`,
         {
           method: "PUT",
           headers: {
@@ -225,7 +225,7 @@ const Teams = () => {
     if (newName) {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/teams/${teamId}/edit-name`,
+          `${Config.server_api}api/teams/${teamId}/edit-name`,
           {
             method: "PUT",
             headers: {

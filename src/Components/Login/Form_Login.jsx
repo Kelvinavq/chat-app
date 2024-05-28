@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import DraftsRoundedIcon from "@mui/icons-material/DraftsRounded";
 import LockOpenRoundedIcon from "@mui/icons-material/LockOpenRounded";
+import Config from "../../Config/Config";
 
 import Swal from "sweetalert2";
 
@@ -52,7 +53,7 @@ const Form_Login = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:4000/api/auth/login", {
+      const response = await fetch(`${Config.server_api}api/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: {

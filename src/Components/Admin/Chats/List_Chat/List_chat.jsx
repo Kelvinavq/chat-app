@@ -22,7 +22,7 @@ const List_chat = ({ onChatClick }) => {
     const fetchAdminTeams = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/admin/teams/${adminId}`
+          `${Config.server_api}api/admin/teams/${adminId}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -42,7 +42,7 @@ const List_chat = ({ onChatClick }) => {
 
   useEffect(() => {
     if (adminTeamIds.length > 0) {
-      fetch(`http://localhost:4000/api/chats/list/${adminId}`)
+      fetch(`${Config.server_api}api/chats/list/${adminId}`)
         .then((response) => response.json())
         .then((data) => {
           const filteredChats = data.chats.filter((chat) =>
@@ -76,31 +76,32 @@ const List_chat = ({ onChatClick }) => {
       socket.on("updateUserStatus", handleUserStatusUpdate);
 
       socket.on("newMessage", (messageData) => {
-        // Establecer el ID del chat del cliente como el último chat del cliente
-        setLastClientChatId(messageData.chatId);
-
         // Actualizar la marca de tiempo del último mensaje del cliente
         setChats((prevChats) => {
-          // Encontrar el índice del chat en la lista actual
           const chatIndex = prevChats.findIndex(
             (chat) => chat.id == messageData.chatId
           );
 
-          // Mover el chat del cliente a la posición uno de la lista
-          const updatedChats = [
-            prevChats[chatIndex],
-            ...prevChats.slice(0, chatIndex),
-            ...prevChats.slice(chatIndex + 1),
-          ];
+          if (chatIndex !== -1) {
+            const updatedChat = {
+              ...prevChats[chatIndex],
+              lastMessageTime: new Date(messageData.created_at).getTime(),
+            };
+            const updatedChats = [
+              updatedChat,
+              ...prevChats.slice(0, chatIndex),
+              ...prevChats.slice(chatIndex + 1),
+            ];
+            return sortChatsByTime(updatedChats);
+          }
 
-          return sortChatsByTime(updatedChats);
+          return prevChats;
         });
       });
-
       return () => {
-        socket.off("newMessage");
         socket.off("newChatNotification");
         socket.off("updateUserStatus", handleUserStatusUpdate);
+        socket.off("newMessage");
       };
     }
   }, [adminId, adminTeamIds]);
@@ -155,7 +156,7 @@ const List_chat = ({ onChatClick }) => {
   const markAsArchived = async (chatId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/chats/archive-chat/${chatId}`,
+        `${Config.server_api}api/chats/archive-chat/${chatId}`,
         {
           method: "PUT",
           credentials: "include",
@@ -190,7 +191,7 @@ const List_chat = ({ onChatClick }) => {
       if (result.isConfirmed) {
         try {
           const response = await fetch(
-            `http://localhost:4000/api/chats/close/${chat_id}`,
+            `${Config.server_api}api/chats/close/${chat_id}`,
             {
               method: "PUT",
               headers: {
@@ -240,7 +241,7 @@ const List_chat = ({ onChatClick }) => {
       if (result.isConfirmed) {
         try {
           const response = await fetch(
-            `http://localhost:4000/api/chats/delete/${chat_id}`,
+            `${Config.server_api}api/chats/delete/${chat_id}`,
             {
               method: "DELETE",
               headers: {

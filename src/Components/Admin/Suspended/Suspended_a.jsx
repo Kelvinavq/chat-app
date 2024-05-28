@@ -6,6 +6,7 @@ import img from "../../../assets/logo.png";
 import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
 import SmsIcon from "@mui/icons-material/Sms";
 import Groups2Icon from "@mui/icons-material/Groups2";
+import Config from "../../../Config/Config";
 
 const Suspended_a = () => {
   const [Agents, setAgents] = useState([]);
@@ -17,7 +18,7 @@ const Suspended_a = () => {
     const obtenerAgentes = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/agents/get-all-users-suspended`,
+          `${Config.server_api}api/agents/get-all-users-suspended`,
           {
             method: "GET",
             mode: "cors",
@@ -72,7 +73,7 @@ const Suspended_a = () => {
   const reactive = async (agentId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/agents/${agentId}/enable`,
+        `${Config.server_api}api/agents/${agentId}/enable`,
         {
           method: "PUT",
           headers: {
@@ -100,7 +101,7 @@ const Suspended_a = () => {
   const fetchAgentDetails = async (agentId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/agents/details/${agentId}`
+        `${Config.server_api}api/agents/details/${agentId}`
       );
       if (response.ok) {
         const data = await response.json();
