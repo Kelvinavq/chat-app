@@ -281,7 +281,7 @@ const Bubble_Chat = () => {
       const deviceId = localStorage.getItem("deviceId") || uuidv4();
       // Solicitud al backend para obtener la información del cliente
       const response = await fetch(
-        `${Config.server_api}users/client-info?deviceId=${deviceId}`,
+        `${Config.server_api}api/users/client-info?deviceId=${deviceId}`,
         {
           method: "GET",
           credentials: "include",
@@ -554,6 +554,7 @@ const Bubble_Chat = () => {
         // Actualizar el estado de los mensajes con el nuevo mensaje enviado
         setMessages([...messages, { sender_id: sender_id, message: message, created_at: timestamp }]);
         socket.emit("sendMessage", { chatId, sender_id, message, timestamp });
+        socket.emit('chatOpened', chatId);
       }
     } catch (error) {
       console.error("Error sending message:", error);

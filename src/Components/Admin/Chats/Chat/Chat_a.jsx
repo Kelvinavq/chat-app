@@ -6,6 +6,7 @@ import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
 import Config from "../../../../Config/Config";
+import Button_sidebar from "../../Sidebar/Button_sidebar";
 
 import io from "socket.io-client";
 const socket = io("http://localhost:4000");
@@ -106,7 +107,16 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to accept chat");
+        const errorResponse = await response.json();
+        if (errorResponse.error === "Chat already accepted") {
+          swal(
+            "Error",
+            "Este chat ya ha sido aceptado por otro usuario.",
+            "error"
+          );
+        } else {
+          throw new Error("Failed to accept chat");
+        }
       } else {
         // Actualizar el estado del chat localmente después de aceptarlo
         setAcceptedChats((prevAcceptedChats) => ({
@@ -116,6 +126,14 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       }
     } catch (error) {
       console.error("Error accepting chat:", error);
+      Swal.fire({
+        title: "INFORMACIÓN",
+        text: "Este chat ya ha sido aceptado por otro usuario",
+        icon: "info",
+        didClose: () =>{
+          window.location.reload();
+        }
+      });
     }
   };
 
@@ -402,6 +420,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       <div className="screen_chat">
         <div className="header_chat">
           <div className="img">
+            <Button_sidebar />
             <img src={img} alt="" />
           </div>
 

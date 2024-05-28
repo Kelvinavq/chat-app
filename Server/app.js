@@ -118,6 +118,11 @@ io.on("connection", (socket) => {
       io.to(data.chatId).emit("newImageMessage", messageData);
     }
   });
+  socket.on("chatOpened", (chatId) => {
+    console.log(`Chat ${chatId} opened`);
+    io.emit("chatOpened", chatId);
+  });
+
 });
 
 // Manejar solicitudes de Socket.IO

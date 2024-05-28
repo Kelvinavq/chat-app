@@ -153,8 +153,7 @@ exports.createMessage = async (req, res) => {
           const messageId = result.insertId;
 
           // Actualizar la columna last_updated_at en la tabla chats
-          const updateQuery =
-            "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+          const updateQuery = "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP, unread_messages_count = unread_messages_count + 1 WHERE id = ?";
           db.query(updateQuery, [chatId], (err, result) => {
             if (err) {
               console.error("Error updating last_updated_at:", err);
@@ -198,10 +197,11 @@ exports.getChatList = async (req, res) => {
           INNER JOIN clients ON chats.client_id = clients.id 
           INNER JOIN teams ON chats.team_id = teams.id 
           WHERE chats.archived = 'visible' 
-          AND chats.team_id IN (?)  -- Filtrar por los IDs de equipos obtenidos
+          AND chats.team_id IN (?)
+          AND (chats.admin_id = ? OR chats.admin_id IS NULL)
           ORDER BY chats.last_updated_at DESC
         `;
-        db.query(query, [teamIds], (err, result) => {
+        db.query(query, [teamIds, adminId], (err, result) => {
           if (err) {
             console.error("Error fetching chat list:", err);
             res
@@ -411,22 +411,32 @@ exports.acceptChat = async (req, res) => {
     const { id } = req.params;
     const { adminId } = req.body;
 
-    const messageQuery = "UPDATE chats SET admin_id = ? WHERE id = ?";
-    db.query(messageQuery, [adminId, id], (err, result) => {
-      if (err) {
-        console.error("Error accepting chat:", err);
-        res.status(500).json({
-          error: "An error occurred while accepted chat",
-        });
-      } else {
-        res.status(200).json({
-          message: "chat accepted successfully",
-        });
+    // Verificar si el chat ya ha sido aceptado por otro usuario
+    const checkQuery = "SELECT admin_id FROM chats WHERE id = ?";
+    db.query(checkQuery, [id], (checkErr, checkResult) => {
+      if (checkErr) {
+        console.error("Error checking chat status:", checkErr);
+        return res.status(500).json({ error: "An error occurred while checking chat status" });
       }
+
+      if (checkResult.length > 0 && checkResult[0].admin_id !== null) {
+        return res.status(400).json({ error: "Chat already accepted" });
+      }
+
+      // Actualizar el chat para asignarle el admin_id
+      const updateQuery = "UPDATE chats SET admin_id = ? WHERE id = ?";
+      db.query(updateQuery, [adminId, id], (updateErr, updateResult) => {
+        if (updateErr) {
+          console.error("Error accepting chat:", updateErr);
+          return res.status(500).json({ error: "An error occurred while accepting chat" });
+        } else {
+          return res.status(200).json({ message: "Chat accepted successfully" });
+        }
+      });
     });
   } catch (error) {
-    console.error("Error unarchive chat:", error);
-    res.status(500).json({ error: "An error occurred while accept chat" });
+    console.error("Error accepting chat:", error);
+    res.status(500).json({ error: "An error occurred while accepting chat" });
   }
 };
 
@@ -558,5 +568,29 @@ exports.uploadMessageAdmin = async (req, res) => {
   } catch (error) {
     console.error("Error creating message:", error);
     res.status(500).json({ error: "An error occurred while creating message" });
+  }
+};
+
+// Controlador para abrir un chat y restablecer el contador de mensajes no leídos
+exports.openChat = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const io = socket.getIO();
+
+    const query = "UPDATE chats SET unread_messages_count = 0 WHERE id = ?";
+    db.query(query, [chatId], (err, result) => {
+      if (err) {
+        console.error("Error resetting unread messages count:", err);
+        res.status(500).json({ error: "An error occurred while opening chat" });
+      } else {
+ 
+        // io.emit('chatOpened', chatId);
+
+        res.status(200).json({ message: "Chat opened successfully" });
+      }
+    });
+  } catch (error) {
+    console.error("Error opening chat:", error);
+    res.status(500).json({ error: "An error occurred while opening chat" });
   }
 };

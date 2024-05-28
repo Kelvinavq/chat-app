@@ -34,9 +34,8 @@
 
   .screen_chat .chat_area {
     width: 100%;
-    height: calc(100vh - 200px) !important;
+    height: 100vh;
   }
-
 }
 
 @media (max-width: 720px) {
@@ -45,8 +44,9 @@
     grid-template-columns: 1fr;
   }
 
-  .chat_list {
+  /* .screen_chat {
     display: none;
-  }
- 
+  } */
+
+
 }
