@@ -6,7 +6,7 @@ import img from "../../../../assets/logo.png";
 const Info_Chat_a =  ({ selectedChat}) => {
 
   if (!selectedChat) {
-    return <div className="screen_chat">Seleccione un chat para comenzar</div>;
+    return <div className="screen_chat seleccionar">Seleccione un chat para comenzar</div>;
   }
    // Convertir la cadena de fecha en un objeto de fecha
    const registrationDate = new Date(selectedChat.date);

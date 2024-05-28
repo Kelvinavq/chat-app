@@ -89,7 +89,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   }, [messages]);
 
   if (!selectedChat) {
-    return <div className="screen_chat">Seleccione un chat para comenzar</div>;
+    return <div className="screen_chat seleccionar">Seleccione un chat para comenzar</div>;
   }
 
   const handleAcceptChat = async (chatId) => {

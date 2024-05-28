@@ -12,4 +12,5 @@ router.post("/update-image/:adminId", adminController.updateAdminImage );
 router.get('/teams/:id', adminController.getAdminTeams);
 
 
+
 module.exports = router;

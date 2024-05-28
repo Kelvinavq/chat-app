@@ -27,6 +27,8 @@ const Sidebar_a = ({ onChatClick }) => {
   const role = localStorage.getItem("role");
   const [adminTeamIds, setAdminTeamIds] = useState([]);
   const [onlineStatus, setOnlineStatus] = useState({});
+  const [adminProfile, setAAdminProfile] = useState("");
+
 
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
@@ -90,7 +92,24 @@ const Sidebar_a = ({ onChatClick }) => {
       }
     };
 
+    const fetchAdminProfile = async () => {
+      try {
+        const response = await fetch(
+          `${Config.server_api}api/admin/admin-info/${adminId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setAAdminProfile(data);
+        } else {
+          console.error("Failed to fetch admin profile");
+        }
+      } catch (error) {
+        console.error("Error fetching admin profile:", error);
+      }
+    };
+
     fetchAdminTeams();
+    fetchAdminProfile();
   }, [adminId]);
 
   useEffect(() => {
@@ -225,7 +244,7 @@ const Sidebar_a = ({ onChatClick }) => {
             onClick={toggleProfileDropdown}
             ref={profileRef}
           >
-            <img src={imgUser} alt="User" />
+            <img src={`http://localhost/chat-app/server/public/assets/profile/${adminProfile.image}`} alt="User" />
             {showProfileDropdown && (
               <div className="dropdown">
                 <button onClick={handleLogout}>Cerrar sesión</button>
