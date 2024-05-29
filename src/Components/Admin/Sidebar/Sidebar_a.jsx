@@ -16,7 +16,7 @@ import { Link, useLocation } from "react-router-dom";
 import io from "socket.io-client";
 const socket = io("http://localhost:4000");
 
-const Sidebar_a = ({ onChatClick }) => {
+const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
   const location = useLocation();
   const [showNotificationsDropdown, setShowNotificationsDropdown] =
     useState(false);
@@ -163,6 +163,7 @@ const Sidebar_a = ({ onChatClick }) => {
           <Link
             to={"/admin/chats"}
             className={`item ${isActive("/admin/chats")}`}
+            onClick={onChatsLinkClick}
           >
             <QuestionAnswerOutlinedIcon />
             <small>Chats</small>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "./Archived.css";
 
 import Config from "../../../Config/Config";
+import Button_sidebar from "../Sidebar/Button_sidebar";
 
 export const Archiveds = () => {
   const [archiveds, setArchiveds] = useState([]);
@@ -97,6 +98,7 @@ export const Archiveds = () => {
     <>
       <div className="archiveds">
         <div className="title">
+          <Button_sidebar />
           <h2>Chats archivados</h2>
         </div>
 

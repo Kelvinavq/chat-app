@@ -342,3 +342,25 @@
     }
   }
   
+  .archiveds .btnSidebar {
+    display: none;
+  }
+  
+  @media (max-width: 720px) {
+    .archiveds .btnSidebar {
+      display: block;
+      width: 35px;
+      height: 35px;
+  
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: none;
+    }
+    .archiveds .title {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+  }
+  

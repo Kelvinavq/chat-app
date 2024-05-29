@@ -224,3 +224,20 @@
 .received .profile_pic {
   float: left;
 }
+
+.screen_chat .header_chat .btnSidebar {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .screen_chat .header_chat .btnSidebar {
+    display: block;
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+  }
+}

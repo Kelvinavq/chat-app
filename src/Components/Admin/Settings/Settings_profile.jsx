@@ -4,6 +4,7 @@ import Buttons from "./Buttons";
 import img from "../../../assets/logo.png";
 import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 import Swal from "sweetalert2";
+import Button_sidebar from "../Sidebar/Button_sidebar";
 
 const Settings_profile = () => {
   const adminId = localStorage.getItem("adminId");
@@ -208,6 +209,7 @@ const Settings_profile = () => {
     <>
       <div className="ajustes">
         <div className="title">
+          <Button_sidebar/>
           <h2>Ajustes - Cuenta</h2>
         </div>
 

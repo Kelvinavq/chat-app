@@ -7,6 +7,7 @@ import SmsIcon from "@mui/icons-material/Sms";
 import Groups2Icon from "@mui/icons-material/Groups2";
 import Swal from "sweetalert2";
 import Config from "../../../Config/Config";
+import Buttons_sidebar from "../Sidebar/Button_sidebar"
 
 const Teams = () => {
   const [Teams, setTeams] = useState([]);
@@ -266,6 +267,7 @@ const Teams = () => {
       <div className="equipos">
         <div className="left">
           <div className="title">
+            <Buttons_sidebar/>
             <h2>Equipos</h2>
           </div>
 

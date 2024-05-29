@@ -419,8 +419,8 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
     <>
       <div className="screen_chat">
         <div className="header_chat">
-          <div className="img">
             <Button_sidebar />
+          <div className="img">
             <img src={img} alt="" />
           </div>
 

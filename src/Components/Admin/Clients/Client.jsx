@@ -2,6 +2,7 @@ import "./clients.css";
 import { useState, useRef, useEffect } from "react";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Swal from "sweetalert2";
+import Button_sidebar from "../Sidebar/Button_sidebar";
 
 const Client = () => {
   const [clients, setClients] = useState([]);
@@ -247,6 +248,8 @@ const Client = () => {
     <>
       <div className="clientes">
         <div className="title">
+
+          <Button_sidebar/>
           <h2>Clientes</h2>
         </div>
 

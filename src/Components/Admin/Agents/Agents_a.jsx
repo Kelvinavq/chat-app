@@ -13,6 +13,8 @@ import { useEffect, useState, useRef } from "react";
 import Swal from "sweetalert2";
 import Config from "../../../Config/Config";
 
+import Button_sidebar from "../Sidebar/Button_sidebar";
+
 const Agents_a = () => {
   const [Agents, setAgents] = useState([]);
   const [counter, setCounter] = useState(0);
@@ -366,6 +368,8 @@ const Agents_a = () => {
       <div className="agents">
         <div className="left">
           <div className="title">
+          <Button_sidebar/>
+
             <h2>Agentes</h2>
           </div>
 

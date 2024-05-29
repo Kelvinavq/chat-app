@@ -9,10 +9,17 @@ const Page_chats_a = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isChatVisible, setIsChatVisible] = useState(false);
+
 
   const handleChatClick = (chat) => {
     setSelectedChat(chat);
     loadChatMessages(chat.id);
+    setIsChatVisible(true);
+  };
+
+  const handleChatsLinkClick = () => {
+    setIsChatVisible(false); // Mostrar la lista de chats y ocultar el chat
   };
 
 
@@ -52,13 +59,13 @@ const Page_chats_a = () => {
   return (
     <>
       <div className="chats_container">
-        <Sidebar_a onChatClick={handleChatClick} />
+        <Sidebar_a onChatClick={handleChatClick} onChatsLinkClick={handleChatsLinkClick}/>
 
         <div className="inner_container">
-          <div className="chat_list">
+          <div className={`chat_list ${isChatVisible ? "hidden" : ""}`}>
             <List_chat onChatClick={handleChatClick} />
           </div>
-          <div className="chat_a">
+          <div className={`chat_a ${isChatVisible ? "" : "hidden"}`}>
             <Chat_a
               selectedChat={selectedChat}
               messages={messages}

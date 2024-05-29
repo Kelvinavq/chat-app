@@ -15,6 +15,10 @@
   position: relative;
 }
 
+.list_chats .title .btnSidebar{
+  display: none;
+}
+
 .list_chats .title h2 {
   color: var(--white);
   font-weight: 500;

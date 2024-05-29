@@ -424,3 +424,25 @@ td.status.inactive {
   display: flex;
   align-items: center;
 }
+
+.equipos .btnSidebar {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .equipos .btnSidebar {
+    display: block;
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+  }
+  .equipos .title {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+}

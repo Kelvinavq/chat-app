@@ -475,3 +475,26 @@ td.suspended {
 .switch input:checked + .slider:before {
   transform: translateX(1.5em);
 }
+
+
+.agents .btnSidebar {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .agents .btnSidebar {
+    display: block;
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+  }
+  .agents .title {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+}

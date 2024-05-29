@@ -87,7 +87,6 @@ const List_chat = ({ onChatClick }) => {
           })
         );
       });
-      
 
       socket.on("updateUserStatus", handleUserStatusUpdate);
 

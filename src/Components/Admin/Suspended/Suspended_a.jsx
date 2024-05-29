@@ -7,6 +7,7 @@ import ChatBubbleIcon from "@mui/icons-material/ChatBubble";
 import SmsIcon from "@mui/icons-material/Sms";
 import Groups2Icon from "@mui/icons-material/Groups2";
 import Config from "../../../Config/Config";
+import Button_sidebar from "../Sidebar/Button_sidebar";
 
 const Suspended_a = () => {
   const [Agents, setAgents] = useState([]);
@@ -120,6 +121,7 @@ const Suspended_a = () => {
       <div className="suspends">
         <div className="left">
           <div className="title">
+            <Button_sidebar/>
             <h2>Agentes suspendidos</h2>
           </div>
 

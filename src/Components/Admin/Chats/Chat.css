@@ -23,6 +23,12 @@
 }
 
 @media (max-width: 920px) {
+  .list_chats .title .btnSidebar {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+  }
+
   .chats_container {
     align-items: center;
   }
@@ -44,9 +50,8 @@
     grid-template-columns: 1fr;
   }
 
-  /* .screen_chat {
-    display: none;
-  } */
-
-
+  .hidden {
+    display: none !important;
+    
+  }
 }

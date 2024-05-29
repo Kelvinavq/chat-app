@@ -5,6 +5,7 @@ import "./Settings.css";
 import Buttons from "./Buttons";
 import CloseIcon from "@mui/icons-material/Close";
 import Swal from "sweetalert2";
+import Button_sidebar from "../Sidebar/Button_sidebar";
 
 const Settings = () => {
   const [autoMessages, setAutoMessages] = useState([]);
@@ -421,6 +422,7 @@ const Settings = () => {
     <>
       <div className="ajustes">
         <div className="title">
+          <Button_sidebar/>
           <h2>Ajustes</h2>
         </div>
 
