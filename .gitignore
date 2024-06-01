@@ -29,4 +29,4 @@ dist-ssr
 *.sw?
 
 # Exclude the server's node_modules directory
-server/node_modules
+Server/node_modules
