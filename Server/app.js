@@ -23,6 +23,12 @@ app.use(cors({ origin:"https://chat-app-28pv.onrender.com", credentials: true })
 // Servir archivos estáticos desde la carpeta dist
 app.use(express.static(path.join(__dirname, '../dist')));
 
+// Asegúrate de tener un "catch-all" route para servir el archivo HTML principal para cualquier ruta que no sea de la API
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../dist', 'index.html'));
+});
+
+
 
 // Definir las rutas de la API
 const userRoutes = require("./routes/userRoutes");
