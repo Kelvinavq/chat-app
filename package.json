@@ -24,6 +24,7 @@
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "sweetalert2": "^11.10.8",
+    "mysql": "^2.18.1",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
