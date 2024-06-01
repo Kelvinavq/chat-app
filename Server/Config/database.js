@@ -1,30 +1,36 @@
-// Importar el módulo mysql
 const mysql = require('mysql');
 
-// Configurar la conexión a la base de datos
-// const db = mysql.createConnection({
-//     host: 'localhost',          
-//     user: 'root',              
-//     password: '',              
-//     database: 'chat-app'        
-// });
+const dbConfig = {
+    host: 'srv960.hstgr.io',
+    user: 'u211881118_chat_app',
+    password: 'Vibradigital2023.',
+    database: 'u211881118_chat_app'
+};
 
+let connection;
 
-const db = mysql.createConnection({
-    host: 'srv960.hstgr.io',          
-    user: 'u211881118_chat_app',              
-    password: 'Vibradigital2023.',              
-    database: 'u211881118_chat_app'        
-});
+function handleDisconnect() {
+    connection = mysql.createConnection(dbConfig);
 
-// Conectar a la base de datos
-db.connect((err) => {
-    if (err) {
-        console.error('Error al conectar a la base de datos:', err);
-    } else {
-        console.log('Conexión exitosa a la base de datos');
-    }
-});
+    connection.connect(err => {
+        if (err) {
+            console.error('Error al conectar a la base de datos:', err);
+            setTimeout(handleDisconnect, 2000); // Intentar reconectar después de 2 segundos
+        } else {
+            console.log('Conexión exitosa a la base de datos');
+        }
+    });
 
-// Exportar la conexión para poder utilizarla en otros archivos
-module.exports = db;
+    connection.on('error', err => {
+        console.error('Error en la conexión a la base de datos:', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'ECONNRESET') {
+            handleDisconnect(); // Reconectar en caso de pérdida de conexión
+        } else {
+            throw err;
+        }
+    });
+}
+
+handleDisconnect();
+
+module.exports = connection;
