@@ -4,7 +4,7 @@ module.exports = {
   init: (httpServer) => {
     io = require('socket.io')(httpServer, {
       cors: {
-        origin: "http://localhost:5173",
+        origin: "https://chat-app-28pv.onrender.com",
         methods: ["GET", "POST", "OPTIONS"],
         credentials: true
       },
