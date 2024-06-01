@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Config from "../../../Config/Config";
+import ReactDOM from 'react-dom';
 import "./Bubble.css";
 import img from "../../../assets/logo.png";
 
@@ -13,9 +14,9 @@ import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import { v4 as uuidv4 } from "uuid";
 
 import io from "socket.io-client";
-const socket = io("https://server-4a3z.onrender.com");
+const socket = io("https://chat-app-28pv.onrender.com");
 import formatMessageTime from "../../../Config/formatMessageTime";
-// import { config } from "webpack";
+
 
 const Bubble_Chat = () => {
   const [showBubble, setShowBubble] = useState(false);
@@ -768,5 +769,8 @@ const Bubble_Chat = () => {
     </>
   );
 };
+export function renderChatWidget(container) {
+  ReactDOM.render(<Bubble_Chat />, container);
+}
 
 export default Bubble_Chat;
