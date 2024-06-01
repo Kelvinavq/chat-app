@@ -21,7 +21,9 @@ app.use(express.json());
 app.use(cors({ origin:"https://chat-app-28pv.onrender.com", credentials: true }));
 
 // Servir archivos estáticos desde la carpeta dist
-app.use(express.static(path.join(__dirname, '../dist/')));
+// app.get('/bubble-chat-widget.umd.js', (req, res) => {
+//   res.sendFile(path.resolve(__dirname, '../dist', 'bubble-chat-widget.umd.js'));
+// });
 
 
 

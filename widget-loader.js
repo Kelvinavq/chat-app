@@ -1,5 +1,5 @@
 (function() {
-  const widgetUrl = 'https://chat-app-28pv.onrender.com/dist/bubble-chat-widget.umd.js';
+  const widgetUrl = '/bubble-chat-widget.umd.js'; // Ruta del archivo generado por Vite
   const script = document.createElement('script');
   script.src = widgetUrl;
   script.onload = () => {
