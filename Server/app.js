@@ -19,6 +19,9 @@ const io = socket.init(server);
 app.use(express.json());
 app.use(cors({ origin:"http://localhost:5173", credentials: true }));
 
+// Servir archivos estáticos desde la carpeta dist
+app.use(express.static(path.join(__dirname, '../dist')));
+
 
 // Definir las rutas de la API
 const userRoutes = require("./routes/userRoutes");

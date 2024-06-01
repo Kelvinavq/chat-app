@@ -1,17 +1,22 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-        secure: false,
+  build: {
+    lib: {
+      entry: './src/Components/Client/Bubble/Bubble_Chat.jsx',
+      name: 'BubbleChatWidget',
+      fileName: (format) => `bubble-chat-widget.${format}.js`,
+    },
+    rollupOptions: {
+      external: ['react', 'react-dom'],
+      output: {
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+        },
       },
     },
   },
-  
 });
