@@ -12,7 +12,8 @@ node_modules
 
 # Build output
 # dist
-# dist-ssr
+!dist/**
+!dist/assets/
 
 # Local environment files
 *.local

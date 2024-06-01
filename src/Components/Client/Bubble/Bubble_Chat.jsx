@@ -14,7 +14,7 @@ import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import { v4 as uuidv4 } from "uuid";
 
 import io from "socket.io-client";
-const socket = io("http://localhost:4000");
+const socket = io("https://chat-app-28pv.onrender.com:10000");
 import formatMessageTime from "../../../Config/formatMessageTime";
 
 

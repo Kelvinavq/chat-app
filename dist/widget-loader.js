@@ -1,6 +1,6 @@
 (function() {
     const script = document.createElement('script');
-    script.src = 'http://localhost/chat-app/dist/chat-widget.js';
+    script.src = 'https://chat-app-28pv.onrender.com/dist/chat-widget.js';
     script.onload = function() {
       const container = document.createElement('div');
       container.id = 'chat-widget-container';
