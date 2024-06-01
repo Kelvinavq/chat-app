@@ -1,5 +1,5 @@
 const db = require("../Config/database");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 // Controlador para obtener todos los clientes
 exports.getAllClients = async (req, res) => {

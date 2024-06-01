@@ -1,5 +1,5 @@
 const db = require("../Config/database");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const Agent = require("../models/agent");
 
 class AgentController {

@@ -1,5 +1,5 @@
 const db = require("../Config/database");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 exports.register = async (req, res) => {
   const { username, email, password, deviceId } = req.body;
