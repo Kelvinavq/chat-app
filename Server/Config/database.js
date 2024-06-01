@@ -2,20 +2,21 @@
 const mysql = require('mysql');
 
 // Configurar la conexión a la base de datos
-const db = mysql.createConnection({
-    host: 'localhost',          
-    user: 'root',              
-    password: '',              
-    database: 'chat-app'        
-});
-
-
 // const db = mysql.createConnection({
 //     host: 'localhost',          
-//     user: 'siemprepagachat',              
-//     password: 'zv6cXmDZy4UuOn4il2CT',              
+//     user: 'root',              
+//     password: '',              
 //     database: 'chat-app'        
 // });
+
+
+const db = mysql.createConnection({
+    host: 'srv960.hstgr.io',          
+    user: 'u211881118_chat_app',              
+    password: 'Vibradigital2023.',              
+    database: 'u211881118_chat_app'        
+});
+
 // Conectar a la base de datos
 db.connect((err) => {
     if (err) {
