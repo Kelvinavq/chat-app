@@ -21,8 +21,7 @@ app.use(express.json());
 app.use(cors({ origin:"https://chat-app-28pv.onrender.com", credentials: true }));
 
 // Servir archivos estáticos desde la carpeta dist
-app.use(express.static(path.join(__dirname, 'dist')));
-
+app.use(express.static(path.join(__dirname, '..', 'dist')));
 
 
 // Definir las rutas de la API
