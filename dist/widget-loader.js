@@ -1,5 +1,5 @@
 (function() {
-    const widgetUrl = 'https://chat-app-28pv.onrender.com';
+    const widgetUrl = 'https://chat-app-28pv.onrender.com/dist/bubble-chat-widget.umd.js';
     const script = document.createElement('script');
     script.src = widgetUrl;
     script.onload = () => {
