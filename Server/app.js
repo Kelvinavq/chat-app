@@ -5,6 +5,7 @@ const http = require("http");
 const chatController = require("./controllers/chatController");
 const db = require("./Config/database");
 const socket = require("./Config/socket");
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
