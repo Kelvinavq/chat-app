@@ -17,7 +17,8 @@ const io = socket.init(server);
 
 // Middleware para el análisis del cuerpo de las solicitudes JSON
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin:"http://localhost:5173", credentials: true }));
+
 
 // Definir las rutas de la API
 const userRoutes = require("./routes/userRoutes");
@@ -101,14 +102,14 @@ io.on("connection", (socket) => {
       created_at: new Date().toISOString().replace("T", " ").substring(0, 19),
     };
     console.log("New message:", messageData);
+    const chat_id = data.chatId;
 
     // Emitir el mensaje a todos los clientes
     // io.to(data.chatId).emit("newMessage", messageData);
     // io.emit("newMessage", messageData)
 
     io.to("adminRoom").emit("newMessage", messageData);
-    io.to(data.chatId).emit("newMessage", messageData);
-
+    io.to(chat_id).emit("newMessage", messageData);
 
     if (data.image) {
       // io.to(data.chatId).emit("newImageMessage", messageData);
@@ -122,7 +123,6 @@ io.on("connection", (socket) => {
     console.log(`Chat ${chatId} opened`);
     io.emit("chatOpened", chatId);
   });
-
 });
 
 // Manejar solicitudes de Socket.IO

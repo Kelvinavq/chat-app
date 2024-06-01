@@ -13,8 +13,9 @@ import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import { v4 as uuidv4 } from "uuid";
 
 import io from "socket.io-client";
-const socket = io("http://localhost:4000");
+const socket = io("https://server-4a3z.onrender.com");
 import formatMessageTime from "../../../Config/formatMessageTime";
+// import { config } from "webpack";
 
 const Bubble_Chat = () => {
   const [showBubble, setShowBubble] = useState(false);

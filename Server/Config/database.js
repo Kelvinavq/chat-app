@@ -9,6 +9,13 @@ const db = mysql.createConnection({
     database: 'chat-app'        
 });
 
+
+// const db = mysql.createConnection({
+//     host: 'localhost',          
+//     user: 'siemprepagachat',              
+//     password: 'zv6cXmDZy4UuOn4il2CT',              
+//     database: 'chat-app'        
+// });
 // Conectar a la base de datos
 db.connect((err) => {
     if (err) {

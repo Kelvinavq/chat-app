@@ -91,6 +91,7 @@ const List_chat = ({ onChatClick }) => {
       socket.on("updateUserStatus", handleUserStatusUpdate);
 
       socket.on("newMessage", (messageData) => {
+        console.log("mensaje nuevo" + messageData);
         setChats((prevChats) => {
           const chatIndex = prevChats.findIndex(
             (chat) => chat.id == messageData.chatId
