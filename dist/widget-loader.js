@@ -1,5 +1,5 @@
 (function() {
-    const widgetUrl = 'https://digitalvibra.com/ferreacevalca';
+    const widgetUrl = 'https://chat-app-28pv.onrender.com';
     const script = document.createElement('script');
     script.src = widgetUrl;
     script.onload = () => {
