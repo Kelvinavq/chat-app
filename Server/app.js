@@ -135,6 +135,10 @@ app.get("/socket.io/", (req, res) => {
   res.send("Socket.IO is running");
 });
 
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '..', 'dist', 'index.html'));
+});
+
 // Iniciar el servidor
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
