@@ -83,7 +83,7 @@ const Agents_a = () => {
     const obtenerAgentes = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/agents/get-all-users`,
+          `${Config.server_api}api/agents/get-all-users`,
           {
             method: "GET",
             mode: "cors",

@@ -6,6 +6,8 @@ import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 import Swal from "sweetalert2";
 import Button_sidebar from "../Sidebar/Button_sidebar";
 
+import Config from "../../../Config/Config";
+
 const Settings_profile = () => {
   const adminId = localStorage.getItem("adminId");
   const [adminInfo, setAdminInfo] = useState({
@@ -19,7 +21,7 @@ const Settings_profile = () => {
     const fetchAdminInfo = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/admin/admin-info/${adminId}`,
+          `${Config.server_api}api/admin/admin-info/${adminId}`,
           {
             method: "GET",
             credentials: "include",
@@ -70,7 +72,7 @@ const Settings_profile = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:4000/api/admin/update-info/${adminId}`,
+          `${Config.server_api}api/admin/update-info/${adminId}`,
           {
             method: "POST",
             credentials: "include",
@@ -125,7 +127,7 @@ const Settings_profile = () => {
     if (newPassword) {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/admin/change-password/${adminId}`,
+          `${Config.server_api}api/admin/change-password/${adminId}`,
           {
             method: "POST",
             credentials: "include",
@@ -169,7 +171,7 @@ const Settings_profile = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:4000/api/admin/update-image/${adminId}`,
+          `${Config.server_api}api/admin/update-image/${adminId}`,
           {
             method: "POST",
             credentials: "include",

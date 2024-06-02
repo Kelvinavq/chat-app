@@ -7,6 +7,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import Swal from "sweetalert2";
 import Button_sidebar from "../Sidebar/Button_sidebar";
 
+import Config from "../../../Config/Config";
+
 const Settings = () => {
   const [autoMessages, setAutoMessages] = useState([]);
   const [counter, setCounter] = useState(0);
@@ -26,7 +28,7 @@ const Settings = () => {
     const obtenerMensajes = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/settings/get-all-messages`,
+          `${Config.server_api}api/settings/get-all-messages`,
           {
             method: "GET",
             mode: "cors",
@@ -128,7 +130,7 @@ const Settings = () => {
 
   const getTeamList = async () => {
     try {
-      const url = new URL(`http://localhost:4000/api/chats/list-team`);
+      const url = new URL(`${Config.server_api}api/chats/list-team`);
 
       const response = await fetch(url, {
         method: "GET",
@@ -171,7 +173,7 @@ const Settings = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/api/settings/add-message",
+        "${Config.server_api}api/settings/add-message",
         {
           method: "POST",
           mode: "cors",
@@ -233,7 +235,7 @@ const Settings = () => {
   const markAsInactive = async (messageId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/settings/${messageId}/disable`,
+        `${Config.server_api}api/settings/${messageId}/disable`,
         {
           method: "PUT",
           headers: {
@@ -261,7 +263,7 @@ const Settings = () => {
   const markAsActive = async (messageId) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/settings/${messageId}/enable`,
+        `${Config.server_api}api/settings/${messageId}/enable`,
         {
           method: "PUT",
           headers: {
@@ -299,7 +301,7 @@ const Settings = () => {
     if (confirmed.isConfirmed) {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/settings/${messageId}/delete`,
+          `${Config.server_api}api/settings/${messageId}/delete`,
           {
             method: "POST",
             headers: {
@@ -382,7 +384,7 @@ const Settings = () => {
   const updateMessage = async (id, name, message) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/settings/${id}/update`,
+        `${Config.server_api}api/settings/${id}/update`,
         {
           method: "PUT",
           headers: {

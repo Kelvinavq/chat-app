@@ -4,6 +4,8 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import Swal from "sweetalert2";
 import Button_sidebar from "../Sidebar/Button_sidebar";
 
+import Config from "../../../Config/Config";
+
 const Client = () => {
   const [clients, setClients] = useState([]);
   const [counter, setCounter] = useState(0);
@@ -17,7 +19,7 @@ const Client = () => {
     const obtenerClientes = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/clients/get-all-clients`,
+          `${Config.server_api}api/clients/get-all-clients`,
           {
             method: "GET",
             mode: "cors",
@@ -130,7 +132,7 @@ const Client = () => {
   const updateClient = async (id, username, email) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/clients/${id}/update`,
+        `${Config.server_api}api/clients/${id}/update`,
         {
           method: "PUT",
           headers: {
@@ -208,7 +210,7 @@ const Client = () => {
   const updateClientPassword = async (id, password) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/clients/${id}/update-password`,
+        `${Config.server_api}api/clients/${id}/update-password`,
         {
           method: "PUT",
           headers: {
