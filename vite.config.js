@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://chat-app-28pv.onrender.com:10000',
+        target: 'https://digitalvibra.com',
         changeOrigin: true,
         secure: false,
       },
