@@ -14,7 +14,8 @@ import Config from "../../../Config/Config";
 import { Link, useLocation } from "react-router-dom";
 
 import io from "socket.io-client";
-const socket = io("http://localhost:4000");
+const socket = io(Config.server_api);
+
 
 const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
   const location = useLocation();

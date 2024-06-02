@@ -6,7 +6,7 @@ import img from "../../../../assets/logo.png";
 import Button_sidebar from "../../Sidebar/Button_sidebar";
 
 import io from "socket.io-client";
-const socket = io("http://localhost:4000");
+const socket = io(Config.server_api);
 
 import Config from "../../../../Config/Config";
 
