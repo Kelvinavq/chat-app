@@ -18,7 +18,7 @@ const io = socket.init(server);
 
 // Middleware para el análisis del cuerpo de las solicitudes JSON
 app.use(express.json());
-app.use(cors({ origin:"https://chat-app-28pv.onrender.com", credentials: true }));
+app.use(cors({ origin:"https://digitalvibra.com", credentials: true }));
 
 // Servir archivos estáticos desde la carpeta dist
 app.use(express.static(path.join(__dirname, '..', 'dist')));
