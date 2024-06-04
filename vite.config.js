@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://digitalvibra.com',
+        target: 'https://463siemprepagachat.com',
         changeOrigin: true,
         secure: false,
       },

@@ -8,7 +8,7 @@ const socket = require("./Config/socket");
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 4000;
 
 // Crear el servidor HTTP
 const server = http.createServer(app);
@@ -18,7 +18,7 @@ const io = socket.init(server);
 
 // Middleware para el análisis del cuerpo de las solicitudes JSON
 app.use(express.json());
-app.use(cors({ origin:"https://digitalvibra.com", credentials: true }));
+app.use(cors({ origin:"https://463siemprepagachat.com", credentials: true }));
 
 // Servir archivos estáticos desde la carpeta dist
 app.use(express.static(path.join(__dirname, '..', 'dist')));
