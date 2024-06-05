@@ -4,6 +4,7 @@ import Sidebar_a from "../../Components/Admin/Sidebar/Sidebar_a";
 import List_chat from "../../Components/Admin/Chats/List_Chat/List_chat";
 import Chat_a from "../../Components/Admin/Chats/Chat/Chat_a";
 import Info_Chat_a from "../../Components/Admin/Chats/Info_Chat/Info_Chat_a";
+import Config from "../../Config/Config";
 
 const Page_chats_a = () => {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -46,7 +47,7 @@ const Page_chats_a = () => {
   }
 
   const loadChatMessages = (chatId) => {
-    fetch(`http://localhost:4000/api/chats/${chatId}/messages`)
+    fetch(`${Config.server_api}/api/chats/${chatId}/messages`)
       .then((response) => response.json())
       .then((data) => {
         setMessages(data.messages);

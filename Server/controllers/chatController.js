@@ -512,7 +512,7 @@ exports.uploadMessageAdmin = async (req, res) => {
       // Generar un nuevo nombre único para la imagen
       const newFileName = `${Date.now()}_${req.file.originalname}`;
       // Construir la ruta completa de la imagen
-      filePath = `http://localhost/chat-app/server/public/assets/images/${newFileName}`;
+      filePath = `https://463siemprepagachat.com/server/public/assets/images/${newFileName}`;
 
       // Renombrar el archivo en el servidor
       fs.renameSync(

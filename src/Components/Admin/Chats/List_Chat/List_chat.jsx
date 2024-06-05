@@ -21,6 +21,7 @@ const List_chat = ({ onChatClick }) => {
   const filterRef = useRef(null);
 
   const adminId = localStorage.getItem("adminId");
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
     const fetchAdminTeams = async () => {
@@ -386,14 +387,25 @@ const List_chat = ({ onChatClick }) => {
                   )}
                 </div>
               </div>
-              <DropdownMenu
-                options={[
-                  { label: "Cerrar chat", value: "cerrar" },
-                  { label: "Borrar chat", value: "borrar" },
-                  { label: "Archivar", value: "archivar" },
-                ]}
-                onOptionClick={(option) => handleOptionClick(option, chat.id)}
-              />
+
+              {role === "admin" ? (
+                <DropdownMenu
+                  options={[
+                    { label: "Cerrar chat", value: "cerrar" },
+                    { label: "Borrar chat", value: "borrar" },
+                    { label: "Archivar", value: "archivar" },
+                  ]}
+                  onOptionClick={(option) => handleOptionClick(option, chat.id)}
+                />
+              ) : (
+                <DropdownMenu
+                  options={[
+                    { label: "Cerrar chat", value: "cerrar" },
+                    { label: "Archivar", value: "archivar" },
+                  ]}
+                  onOptionClick={(option) => handleOptionClick(option, chat.id)}
+                />
+              )}
             </div>
           ))}
         </div>

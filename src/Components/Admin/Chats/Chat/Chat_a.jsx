@@ -28,9 +28,11 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
     const admin_Id = localStorage.getItem("adminId");
+
     const admin_Id_Integer = parseInt(admin_Id, 10);
     setSender_id(admin_Id_Integer);
   }, [sender_id]);
@@ -89,7 +91,11 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   }, [messages]);
 
   if (!selectedChat) {
-    return <div className="screen_chat seleccionar">Seleccione un chat para comenzar</div>;
+    return (
+      <div className="screen_chat seleccionar">
+        Seleccione un chat para comenzar
+      </div>
+    );
   }
 
   const handleAcceptChat = async (chatId) => {
@@ -130,9 +136,9 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
         title: "INFORMACIÓN",
         text: "Este chat ya ha sido aceptado por otro usuario",
         icon: "info",
-        didClose: () =>{
+        didClose: () => {
           window.location.reload();
-        }
+        },
       });
     }
   };
@@ -419,7 +425,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
     <>
       <div className="screen_chat">
         <div className="header_chat">
-            <Button_sidebar />
+          <Button_sidebar />
           <div className="img">
             <img src={img} alt="" />
           </div>
@@ -439,16 +445,28 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
             </div>
 
             <div className="button">
-              <DropdownMenu
-                options={[
-                  { label: "Cerrar chat", value: "cerrar" },
-                  { label: "Borrar chat", value: "borrar" },
-                  { label: "Archivar chat", value: "archivar" },
-                ]}
-                onOptionClick={(option) =>
-                  handleOptionClick(option, selectedChat)
-                }
-              />
+              {role === "admin" ? (
+                <DropdownMenu
+                  options={[
+                    { label: "Cerrar chat", value: "cerrar" },
+                    { label: "Borrar chat", value: "borrar" },
+                    { label: "Archivar chat", value: "archivar" },
+                  ]}
+                  onOptionClick={(option) =>
+                    handleOptionClick(option, selectedChat)
+                  }
+                />
+              ) : (
+                <DropdownMenu
+                  options={[
+                    { label: "Cerrar chat", value: "cerrar" },
+                    { label: "Archivar chat", value: "archivar" },
+                  ]}
+                  onOptionClick={(option) =>
+                    handleOptionClick(option, selectedChat)
+                  }
+                />
+              )}
             </div>
           </div>
         </div>

@@ -1,21 +1,20 @@
+// Cargar las variables de entorno desde el archivo .env
+require('dotenv').config();
+
 // Importar el módulo mysql
 const mysql = require('mysql');
 
-// Configurar la conexión a la base de datos
-// const db = mysql.createConnection({
-//     host: 'localhost',          
-//     user: 'root',              
-//     password: '',              
-//     database: 'chat-app'        
-// });
+// Configurar la conexión a la base de datos dependiendo del entorno
+const isProduction = process.env.NODE_ENV === 'production';
 
+const dbConfig = {
+    host: isProduction ? process.env.DB_HOST_SERVER : process.env.DB_HOST_LOCAL,
+    user: isProduction ? process.env.DB_USER_SERVER : process.env.DB_USER_LOCAL,
+    password: isProduction ? process.env.DB_PASS_SERVER : process.env.DB_PASS_LOCAL,
+    database: isProduction ? process.env.DB_NAME_SERVER : process.env.DB_NAME_LOCAL
+};
 
-const db = mysql.createConnection({
-    host: 'srv960.hstgr.io',          
-    user: 'u211881118_chat_app',              
-    password: 'Vibradigital2023.',              
-    database: 'u211881118_chat_app'        
-});
+const db = mysql.createConnection(dbConfig);
 
 // Conectar a la base de datos
 db.connect((err) => {

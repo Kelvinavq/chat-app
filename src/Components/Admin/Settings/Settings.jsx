@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+
+import ReactHtmlParser from "react-html-parser";
+
 import "./Settings.css";
 import Buttons from "./Buttons";
 import CloseIcon from "@mui/icons-material/Close";
@@ -23,6 +28,14 @@ const Settings = () => {
     team: null,
     message: "",
   });
+
+  const [editMessage, setEditMessage] = useState({
+    id: null,
+    name: "",
+    message: "",
+  });
+
+  const [showEditMessageModal, setShowEditMessageModal] = useState(false);
 
   useEffect(() => {
     const obtenerMensajes = async () => {
@@ -173,7 +186,7 @@ const Settings = () => {
 
     try {
       const response = await fetch(
-        "${Config.server_api}api/settings/add-message",
+        `${Config.server_api}api/settings/add-message`,
         {
           method: "POST",
           mode: "cors",
@@ -218,7 +231,7 @@ const Settings = () => {
         await deleteMessage(messageId);
         break;
       case "editar":
-        handleEditMessage(message);
+        handleOpenEditModal(message);
         break;
       case "inhabilitar":
         if (teamStatus === "active") {
@@ -420,11 +433,75 @@ const Settings = () => {
     }
   };
 
+  const handleMessageChange = (value) => {
+    setFormData({ ...formData, message: value });
+  };
+
+  const handleOpenEditModal = (message) => {
+    setEditMessage({
+      id: message.id,
+      name: message.name,
+      message: message.message,
+    });
+    setShowEditMessageModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditMessage(null);
+    setShowEditMessageModal(false);
+  };
+
+  const handleEditMessageFormSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      const response = await fetch(
+        `${Config.server_api}api/settings/${editMessage.id}/update`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: editMessage.id,
+            name: editMessage.name,
+            message: editMessage.message,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        Swal.fire({
+          title: "Éxito",
+          text: "Mensaje actualizado con éxito.",
+          icon: "success",
+          didClose: () => {
+            window.location.reload();
+          },
+        });
+        setShowEditMessageModal(false);
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "Error al actualizar el mensaje.",
+          icon: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Error al actualizar el mensaje:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Error al actualizar el mensaje.",
+        icon: "error",
+      });
+    }
+  };
+
   return (
     <>
       <div className="ajustes">
         <div className="title">
-          <Button_sidebar/>
+          <Button_sidebar />
           <h2>Ajustes</h2>
         </div>
 
@@ -473,7 +550,9 @@ const Settings = () => {
                         ? "equipo"
                         : "Despedida"}
                     </td>
-                    <td data-label="Mensaje">{message.message}</td>
+                    <td data-label="Mensaje">
+                      {ReactHtmlParser(message.message)}
+                    </td>
                     <td data-label="Estatus" className={`${message.status}`}>
                       {message.status}
                     </td>
@@ -582,6 +661,7 @@ const Settings = () => {
                       value={formData.team}
                       onChange={handleInputChange}
                     >
+                      <option value="">Seleccionar</option>
                       {teams.map((team) => (
                         <option key={team.id} value={team.id}>
                           {team.name}
@@ -592,17 +672,76 @@ const Settings = () => {
                 )}
                 <div className="input">
                   <label htmlFor="message">Escribe el mensaje</label>
-                  <textarea
+                  {/* <textarea
                     id="message"
                     placeholder="Mensaje automático"
                     value={formData.message}
                     onChange={handleInputChange}
-                  ></textarea>
+                  ></textarea> */}
+
+                  <ReactQuill
+                    id="message"
+                    value={formData.message}
+                    onChange={handleMessageChange}
+                    placeholder="Mensaje automático"
+                  />
                 </div>
 
                 <div className="input">
                   <button type="submit">Guardar</button>
                 </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditMessageModal && (
+        <div className="modal-overlay">
+          <div className="modal" ref={modalRef}>
+            <button className="close-modal" onClick={handleCloseEditModal}>
+              <CloseIcon />
+            </button>
+            <div className="title">
+              <h4>Editar mensaje automático</h4>
+            </div>
+            <form
+              onSubmit={handleEditMessageFormSubmit}
+              className="content-modal"
+            >
+              <div className="left">
+                <div className="input">
+                  <label htmlFor="edit-name">Nombre</label>
+                  <input
+                    type="text"
+                    id="edit-name"
+                    value={editMessage.name}
+                    onChange={(e) =>
+                      setEditMessage({ ...editMessage, name: e.target.value })
+                    }
+                  />
+                </div>
+              
+                <div className="input">
+                  <button type="submit">Actualizar</button>
+                </div>
+              
+              </div>
+
+              <div className="right">
+              <div className="input">
+                  <label htmlFor="edit-message">Mensaje</label>
+                  <ReactQuill
+                    id="edit-message"
+                    value={editMessage.message}
+                    onChange={(value) =>
+                      setEditMessage({ ...editMessage, message: value })
+                    }
+                    placeholder="Mensaje automático"
+                  />
+                </div>
+
+            
               </div>
             </form>
           </div>

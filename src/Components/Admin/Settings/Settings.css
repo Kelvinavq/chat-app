@@ -250,3 +250,20 @@ td.inactive {
     gap: 30px;
   }
 }
+
+
+.ajustes .content-modal{
+  overflow-y: auto;
+}
+
+.ql-toolbar.ql-snow + .ql-container.ql-snow {
+  height: auto;
+}
+
+.ql-formats button{
+  width: 28px !important;
+}
+
+.ql-editor > * {
+ color: var(--white) !important;
+}

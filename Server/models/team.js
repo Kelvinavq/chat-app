@@ -8,7 +8,7 @@ class Team {
         'SELECT * FROM teams WHERE status = "active"',
         (error, results) => {
           if (error) {
-            reject(new Error("Error al obtener los equipos"));
+            reject(new Error("Error al obtener los equipos", error));
           } else {
             resolve(results);
           }

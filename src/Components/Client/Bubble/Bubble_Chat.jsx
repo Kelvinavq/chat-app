@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import Config from "../../../Config/Config";
-import ReactDOM from 'react-dom';
+import ReactDOM from "react-dom";
 import "./Bubble.css";
+import "../../../Config/Config.css";
 import img from "../../../assets/logo.png";
 
 import Swal from "sweetalert2";
@@ -10,13 +11,13 @@ import ChatBubbleRoundedIcon from "@mui/icons-material/ChatBubbleRounded";
 import CloseIcon from "@mui/icons-material/Close";
 import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import ReactHtmlParser from "react-html-parser";
 
 import { v4 as uuidv4 } from "uuid";
 
 import io from "socket.io-client";
 const socket = io(Config.server_api);
 import formatMessageTime from "../../../Config/formatMessageTime";
-
 
 const Bubble_Chat = () => {
   const [showBubble, setShowBubble] = useState(false);
@@ -39,7 +40,6 @@ const Bubble_Chat = () => {
 
   const [messageWelcome, setMessageWelcome] = useState([]);
 
-  
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
 
@@ -47,11 +47,16 @@ const Bubble_Chat = () => {
 
   const handleCloseChat = () => {
     setShowChat(false);
+    setShowRegisterForm(false);
     setShowBubble(false);
   };
 
   const handleOpenChat = () => {
-    // setShowChat(true);
+    if (!isRegistered) {
+      setShowRegisterForm(true);
+    } else {
+      setShowChat(true);
+    }
     setShowBubble(true);
   };
 
@@ -310,13 +315,12 @@ const Bubble_Chat = () => {
   };
 
   const handleBubbleClick = () => {
-
-    if (!isRegistered) {
-      setShowRegisterForm(true);
-      setShowBubble(true);
+    if (showBubble) {
+      // Si la burbuja ya está abierta, cerrarla
+      handleCloseChat();
     } else {
-      setShowChat(true);
-      setShowBubble(true);
+      // Si la burbuja está cerrada, abrir la ventana correspondiente
+      handleOpenChat();
     }
   };
 
@@ -458,9 +462,9 @@ const Bubble_Chat = () => {
     if (file) {
       const message = "";
       const timestamp = new Date()
-      .toISOString()
-      .replace("T", " ")
-      .substring(0, 19);
+        .toISOString()
+        .replace("T", " ")
+        .substring(0, 19);
 
       const formData = new FormData();
       formData.append("chatId", chat_id);
@@ -507,9 +511,9 @@ const Bubble_Chat = () => {
   const handleSendMessage = async () => {
     try {
       const timestamp = new Date()
-      .toISOString()
-      .replace("T", " ")
-      .substring(0, 19);
+        .toISOString()
+        .replace("T", " ")
+        .substring(0, 19);
 
       const message = messageInput;
       const chat_id = chatId;
@@ -526,8 +530,6 @@ const Bubble_Chat = () => {
         console.log("No hay chat activo");
         return;
       }
-
-  
 
       const response = await fetch(
         `${Config.server_api}api/chats/messages/create`,
@@ -554,9 +556,12 @@ const Bubble_Chat = () => {
         setMessageInput("");
 
         // Actualizar el estado de los mensajes con el nuevo mensaje enviado
-        setMessages([...messages, { sender_id: sender_id, message: message, created_at: timestamp }]);
+        setMessages([
+          ...messages,
+          { sender_id: sender_id, message: message, created_at: timestamp },
+        ]);
         socket.emit("sendMessage", { chatId, sender_id, message, timestamp });
-        socket.emit('chatOpened', chatId);
+        socket.emit("chatOpened", chatId);
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -567,7 +572,6 @@ const Bubble_Chat = () => {
     setSelectedImageUrl(imageUrl);
     setShowImageModal(true);
   };
-
 
   useEffect(() => {
     if (chatId) {
@@ -686,9 +690,16 @@ const Bubble_Chat = () => {
                     >
                       {message.message && <p>{message.message}</p>}
                       {message.image && (
-                        <img src={message.image} alt="Message" onClick={() => handleImageClick(message.image)} />
+                        <img
+                          src={message.image}
+                          alt="Message"
+                          onClick={() => handleImageClick(message.image)}
+                        />
                       )}
-                      <div className="timestamp"> {formatMessageTime(message.created_at)}</div>
+                      <div className="timestamp">
+                        {" "}
+                        {formatMessageTime(message.created_at)}
+                      </div>
                       {index === messages.length - 1 && (
                         <div ref={endOfMessagesRef}></div>
                       )}
@@ -701,7 +712,7 @@ const Bubble_Chat = () => {
                         <figure className="avatar">
                           <img src={img} />
                         </figure>
-                        <p>{welcome.message}</p>
+                        {ReactHtmlParser(welcome.message)}
                       </div>
                     ))}
 
@@ -758,14 +769,14 @@ const Bubble_Chat = () => {
           </div>
         </div>
       )}
-        {showImageModal && (
-          <div className="image_modal" onClick={() => setShowImageModal(false)}>
-            <div className="image_modal_content">
-              <img src={selectedImageUrl} alt="Selected Image" />
-              <button onClick={() => setShowImageModal(false)}>Cerrar</button>
-            </div>
+      {showImageModal && (
+        <div className="image_modal" onClick={() => setShowImageModal(false)}>
+          <div className="image_modal_content">
+            <img src={selectedImageUrl} alt="Selected Image" />
+            <button onClick={() => setShowImageModal(false)}>Cerrar</button>
           </div>
-        )}
+        </div>
+      )}
     </>
   );
 };

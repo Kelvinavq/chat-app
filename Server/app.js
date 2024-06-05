@@ -1,11 +1,13 @@
 // Importar los módulos necesarios
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const chatController = require("./controllers/chatController");
 const db = require("./Config/database");
 const socket = require("./Config/socket");
-const path = require('path');
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -16,13 +18,21 @@ const server = http.createServer(app);
 // Configuración del WebSocket
 const io = socket.init(server);
 
+const isProduction = process.env.NODE_ENV === "production";
+
 // Middleware para el análisis del cuerpo de las solicitudes JSON
 app.use(express.json());
-app.use(cors({ origin:"https://463siemprepagachat.com", credentials: true }));
+app.use(
+  cors({
+    origin: isProduction
+      ? process.env.CLIENT_ORIGIN
+      : process.env.CLIENT_ORIGIN_LOCAL,
+    credentials: true,
+  })
+);
 
 // Servir archivos estáticos desde la carpeta dist
-app.use(express.static(path.join(__dirname, '..', 'dist')));
-
+app.use(express.static(path.join(__dirname, "..", "dist")));
 
 // Definir las rutas de la API
 const userRoutes = require("./routes/userRoutes");
@@ -135,8 +145,8 @@ app.get("/socket.io/", (req, res) => {
   res.send("Socket.IO is running");
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '..', 'dist', 'index.html'));
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "..", "dist", "index.html"));
 });
 
 // Iniciar el servidor

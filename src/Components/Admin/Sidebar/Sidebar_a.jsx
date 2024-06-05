@@ -16,7 +16,6 @@ import { Link, useLocation } from "react-router-dom";
 import io from "socket.io-client";
 const socket = io(Config.server_api);
 
-
 const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
   const location = useLocation();
   const [showNotificationsDropdown, setShowNotificationsDropdown] =
@@ -29,7 +28,6 @@ const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
   const [adminTeamIds, setAdminTeamIds] = useState([]);
   const [onlineStatus, setOnlineStatus] = useState({});
   const [adminProfile, setAAdminProfile] = useState("");
-
 
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
@@ -71,7 +69,7 @@ const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
     localStorage.removeItem("role");
     localStorage.removeItem("adminId");
     // Redirige al usuario a la página de login
-    window.location.reload();
+    window.location = "/login";
   };
 
   useEffect(() => {
@@ -191,7 +189,6 @@ const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
               </Link>
             </>
           )}
-
         </div>
         <div className="items_bottom">
           {role === "admin" && (
@@ -246,7 +243,10 @@ const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
             onClick={toggleProfileDropdown}
             ref={profileRef}
           >
-            <img src={`http://localhost/chat-app/server/public/assets/profile/${adminProfile.image}`} alt="User" />
+            <img
+              src={`https://463siemprepagachat.com/server/public/assets/profile/${adminProfile.image}`}
+              alt="User"
+            />
             {showProfileDropdown && (
               <div className="dropdown">
                 <button onClick={handleLogout}>Cerrar sesión</button>
