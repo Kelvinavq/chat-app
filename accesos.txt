@@ -1,0 +1,31 @@
+- .nvm (carpeta)
+- .ssh (carpeta)
+- backups (carpeta)
+- htdocs (carpeta)
+- logs (carpeta
+- tmp (carpeta)
+- chat-app
+- .bashrc
+- .profile
+
+decimales
+montos del carrito
+categorías
+
+ssh root@193.203.174.195
+NviFAV4uD#8
+
+pass: JNfU1v3NxNuNg8Wk0mPd
+name: chat
+user: siemprepagachatapp
+
+cloudpanel: 1i5QlDO1rTf4JjNDwdCj
+
+pm2 restart all
+npx /usr/local/bin/webpack --config webpack.config.cjs
+sudo systemctl restart nginx
+pm2 restart all
+
+
+
+scp -r C:\xampp\htdocs\chat-app root@193.203.174.195:/home/siemprepaga/chat-app

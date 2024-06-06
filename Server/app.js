@@ -20,17 +20,33 @@ const io = socket.init(server);
 
 const isProduction = process.env.NODE_ENV === "production";
 
+// Obtener orígenes permitidos de las variables de entorno
+const getClientOrigins = () => {
+  const origins = isProduction 
+    ? process.env.CLIENT_ORIGIN.split(',')
+    : process.env.CLIENT_ORIGIN_LOCAL.split(',');
+
+  return origins.map(origin => origin.trim());
+};
+
+const allowedOrigins = getClientOrigins();
+
 // Middleware para el análisis del cuerpo de las solicitudes JSON
 app.use(express.json());
 app.use(
   cors({
-    origin: isProduction
-      ? process.env.CLIENT_ORIGIN
-      : process.env.CLIENT_ORIGIN_LOCAL,
+    origin: (origin, callback) => {
+      // Permitir solicitudes sin origen, por ejemplo, desde aplicaciones móviles o solicitudes curl
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = 'El origen CORS no está permitido.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
-
 // Servir archivos estáticos desde la carpeta dist
 app.use(express.static(path.join(__dirname, "..", "dist")));
 

@@ -1,6 +1,6 @@
 (function() {
     const script = document.createElement('script');
-    script.src = 'https://463siemprepagachat.com/dist/chat-widget.js';
+    script.src = 'https://463siemprepagachat.com/chat-widget.js';
     script.onload = function() {
       const container = document.createElement('div');
       container.id = 'chat-widget-container';

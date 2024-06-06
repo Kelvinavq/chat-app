@@ -4,6 +4,8 @@ import img from "../../../../assets/logo.png";
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import ReactHtmlParser from "react-html-parser";
+
 
 import Config from "../../../../Config/Config";
 import Button_sidebar from "../../Sidebar/Button_sidebar";
@@ -484,7 +486,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
                   message.type === "image" ? "image" : "text"
                 }`}
               >
-                {message.message && <p>{message.message}</p>}
+                {message.message && <p>{ReactHtmlParser(message.message)}</p>}
 
                 {message.image && (
                   <div className="message_image_container">

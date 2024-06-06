@@ -368,7 +368,7 @@ const Bubble_Chat = () => {
       console.error("Error registering user:", error);
       Swal.fire({
         icon: "error",
-        text: "Registration failed. Please try again later",
+        text: "Datos de acceso incorrectos, contáctenos para actualizar sus datos de ingreso",
       });
     }
   };
@@ -688,7 +688,8 @@ const Bubble_Chat = () => {
                           : ""
                       } new`}
                     >
-                      {message.message && <p>{message.message}</p>}
+                      {message.message && <p>{ReactHtmlParser(message.message)}</p>}
+
                       {message.image && (
                         <img
                           src={message.image}
