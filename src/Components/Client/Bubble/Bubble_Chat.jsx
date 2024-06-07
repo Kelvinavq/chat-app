@@ -70,16 +70,23 @@ const Bubble_Chat = () => {
 
     // Listener para manejar los mensajes recibidos del servidor
     const handleNewMessage = (data) => {
+      
       // Verificar si el mensaje no está vacío antes de agregarlo al estado de mensajes
       if (
         (data.message && data.message.trim() !== "") ||
         (data.image && data.image.trim() !== "")
       ) {
         setMessages((prevMessages) => {
-          const isDuplicate = prevMessages.some((msg) => msg.id === data.id);
-          if (isDuplicate) {
-            return prevMessages;
+          // Si el mensaje proviene del cliente actual
+          if (data.sender_id === clientID) {
+            // Realiza la verificación de duplicados
+            const isDuplicate = prevMessages.some((msg) => msg.id === data.id);
+            if (isDuplicate) {
+              return prevMessages;
+            }
           }
+
+          // Si el mensaje no es duplicado o proviene de otro cliente, agrégalo al estado de mensajes
           return [...prevMessages, data];
         });
       }
@@ -96,13 +103,11 @@ const Bubble_Chat = () => {
   useEffect(() => {
     if (chatId) {
       socket.emit("joinChat", chatId);
-      console.log(`Joined chat roomm: ${chatId}`);
     }
 
     return () => {
       if (chatId) {
         socket.emit("leaveChat", chatId);
-        console.log(`Left chat room: ${chatId}`);
       }
     };
   }, [chatId]);
@@ -368,7 +373,7 @@ const Bubble_Chat = () => {
       console.error("Error registering user:", error);
       Swal.fire({
         icon: "error",
-        text: "Datos de acceso incorrectos, contáctenos para actualizar sus datos de ingreso",
+        text: "Registration failed. Please try again later",
       });
     }
   };
@@ -688,8 +693,9 @@ const Bubble_Chat = () => {
                           : ""
                       } new`}
                     >
-                      {message.message && <p>{ReactHtmlParser(message.message)}</p>}
-
+                      {message.message && (
+                        <p> {ReactHtmlParser(message.message)}</p>
+                      )}
                       {message.image && (
                         <img
                           src={message.image}
@@ -770,6 +776,7 @@ const Bubble_Chat = () => {
           </div>
         </div>
       )}
+
       {showImageModal && (
         <div className="image_modal" onClick={() => setShowImageModal(false)}>
           <div className="image_modal_content">

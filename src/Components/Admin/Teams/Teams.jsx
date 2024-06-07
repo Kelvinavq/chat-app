@@ -297,7 +297,7 @@ const Teams = () => {
               <thead>
                 <tr>
                   <th scope="col">Nombre</th>
-                  <th scope="col">Chats</th>
+                  <th scope="col">Equipos</th>
                   <th scope="col">Estatus</th>
                   <th scope="col"></th>
                 </tr>

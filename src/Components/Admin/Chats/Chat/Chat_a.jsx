@@ -4,8 +4,6 @@ import img from "../../../../assets/logo.png";
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import ReactHtmlParser from "react-html-parser";
-
 
 import Config from "../../../../Config/Config";
 import Button_sidebar from "../../Sidebar/Button_sidebar";
@@ -14,6 +12,7 @@ import io from "socket.io-client";
 const socket = io(Config.server_api);
 import Swal from "sweetalert2";
 import formatMessageTime from "../../../../Config/formatMessageTime";
+import ReactHtmlParser from "react-html-parser";
 
 const Chat_a = ({ selectedChat, messages, setMessages }) => {
   const [messageInput, setMessageInput] = useState("");
@@ -41,7 +40,6 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
   useEffect(() => {
     const handleNewMessage = (messageData) => {
-      console.log("Received new message data:", messageData);
       if (messageData.chatId === selectedChat?.id) {
         setMessages((prevMessages) => [...prevMessages, messageData]);
       }
@@ -60,12 +58,10 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   useEffect(() => {
     if (selectedChat) {
       socket.emit("joinChat", selectedChat.id);
-      console.log(`Joined chat: ${selectedChat.id}`);
       setClientID(selectedChat.client_id);
 
       return () => {
         socket.emit("leaveChat", selectedChat.id);
-        console.log(`Left chat: ${selectedChat.id}`);
       };
     }
   }, [selectedChat, clientID, adminIdAcceptChat]);
@@ -117,7 +113,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       if (!response.ok) {
         const errorResponse = await response.json();
         if (errorResponse.error === "Chat already accepted") {
-          swal(
+          Swal(
             "Error",
             "Este chat ya ha sido aceptado por otro usuario.",
             "error"
@@ -507,56 +503,53 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
         </div>
 
         <div className="input_area">
-          {selectedChat.status === "closed" ? (
-            <>
-              <p>Chat cerrado</p>
-            </>
-          ) : (
-            (selectedChat.admin_id !== null ||
-              acceptedChats[selectedChat.id]) && (
-              <>
-                <div className="input">
-                  <input
-                    type="text"
-                    placeholder="Escribe un mensaje..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyDown={handleMessageInputKeyDown}
-                  />
-                </div>
+  {selectedChat.status === "closed" ? (
+    <>
+      <p>Chat cerrado</p>
+    </>
+  ) : !acceptedChats[selectedChat.id] ? (
+    <div className="input_area">
+      <button
+        className="accept_chat_button"
+        onClick={() => handleAcceptChat(selectedChat.id)}
+      >
+        Aceptar Chat
+      </button>
+    </div>
+  ) : (
+    <>
+      <div className="input">
+        <input
+          type="text"
+          placeholder="Escribe un mensaje..."
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          onKeyDown={handleMessageInputKeyDown}
+        />
+      </div>
 
-                <div className="buttons">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    style={{ display: "none" }}
-                    id="imageUpload"
-                  />
-                  <button className="media">
-                    <label htmlFor="imageUpload">
-                      <CameraAltRoundedIcon />
-                    </label>
-                  </button>
-                  <button className="send" onClick={handleSendMessage}>
-                    <SendRoundedIcon />
-                  </button>
-                </div>
-              </>
-            )
-          )}
-          {}
-          {selectedChat.admin_id === null &&
-            !acceptedChats[selectedChat.id] && (
-              <>
-                <div className="accept_chat">
-                  <button onClick={() => handleAcceptChat(selectedChat.id)}>
-                    Aceptar este chat
-                  </button>
-                </div>
-              </>
-            )}
-        </div>
+      <div className="buttons">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          style={{ display: "none" }}
+          id="imageUpload"
+        />
+        <button className="media">
+          <label htmlFor="imageUpload">
+            <CameraAltRoundedIcon />
+          </label>
+        </button>
+        <button className="send" onClick={handleSendMessage}>
+          <SendRoundedIcon />
+        </button>
+      </div>
+    </>
+  )}
+</div>
+
+
         {showImageModal && (
           <div className="image_modal" onClick={() => setShowImageModal(false)}>
             <div className="image_modal_content">

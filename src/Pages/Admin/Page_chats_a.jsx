@@ -11,6 +11,7 @@ const Page_chats_a = () => {
   const [messages, setMessages] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
+  const [acceptedChats, setAcceptedChats] = useState({});
 
 
   const handleChatClick = (chat) => {
@@ -22,7 +23,6 @@ const Page_chats_a = () => {
   const handleChatsLinkClick = () => {
     setIsChatVisible(false); // Mostrar la lista de chats y ocultar el chat
   };
-
 
   useEffect(() => {
     // Verificar si el adminId está presente en el localStorage
@@ -46,21 +46,37 @@ const Page_chats_a = () => {
     return null;
   }
 
-  const loadChatMessages = (chatId) => {
-    fetch(`${Config.server_api}/api/chats/${chatId}/messages`)
-      .then((response) => response.json())
-      .then((data) => {
+  const loadChatMessages = async (chatId) => {
+    try {
+      const response = await fetch(
+        `${Config.server_api}api/chats/${chatId}/messages`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+
+      if (response.ok) {
         setMessages(data.messages);
-      })
-      .catch((error) => {
+      } else {
         console.error("Error fetching chat messages:", error);
-      });
+      }
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+    }
   };
 
   return (
     <>
       <div className="chats_container">
-        <Sidebar_a onChatClick={handleChatClick} onChatsLinkClick={handleChatsLinkClick}/>
+        <Sidebar_a
+          onChatClick={handleChatClick}
+          onChatsLinkClick={handleChatsLinkClick}
+        />
 
         <div className="inner_container">
           <div className={`chat_list ${isChatVisible ? "hidden" : ""}`}>
@@ -71,6 +87,8 @@ const Page_chats_a = () => {
               selectedChat={selectedChat}
               messages={messages}
               setMessages={setMessages}
+              acceptedChats={acceptedChats}
+              setAcceptedChats={setAcceptedChats}
             />
           </div>
           <div className="info">

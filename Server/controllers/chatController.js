@@ -109,6 +109,7 @@ exports.createChat = async (req, res) => {
 
 // Controlador para obtener todos los mensajes de un chat activo
 exports.getChatMessages = async (req, res) => {
+  
   try {
     const { chatId } = req.params;
 

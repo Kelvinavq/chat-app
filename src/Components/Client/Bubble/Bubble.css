@@ -165,7 +165,7 @@ Messages
 
 .messages .message {
   max-width: 200px;
-  min-width: 75px;
+  min-width: 90px;
   clear: both;
   word-break: break-all;
   float: left;

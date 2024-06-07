@@ -222,7 +222,7 @@ const Settings_profile = () => {
             <img
               src={
                 adminInfo.Image
-                  ? `https://463siemprepagachat.com/server/public/assets/profile/${adminInfo.Image}`
+                  ? `http://localhost/chat-app/Server/public/assets/profile/${adminInfo.Image}`
                   : img
               }
               alt=""
