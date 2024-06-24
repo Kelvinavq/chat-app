@@ -6,25 +6,49 @@ import Chat_a from "../../Components/Admin/Chats/Chat/Chat_a";
 import Info_Chat_a from "../../Components/Admin/Chats/Info_Chat/Info_Chat_a";
 import Config from "../../Config/Config";
 
-
-
 const Page_chats_a = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [acceptedChats, setAcceptedChats] = useState({});
+  const [isAccepted, setIsAccepted] = useState(false);
+  const [statusChat, setStatusChat] = useState("");
 
   const handleCloseChat = () => {
-    setSelectedChat(null); 
+    setSelectedChat(null);
     setIsChatVisible(false); // Mostrar la lista de chats y ocultar el chat
-
   };
 
-  const handleChatClick = (chat) => {
+  const handleChatClick = async (chat) => {
     setSelectedChat(chat);
     loadChatMessages(chat.id);
     setIsChatVisible(true);
+
+    // Verificar si el chat ya fue aceptado
+    try {
+      const response = await fetch(
+        `${Config.server_api}api/chats/status/${chat.id}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const chatData = await response.json();
+        setIsAccepted(chatData.admin_id !== null);
+        setStatusChat(chatData.status === true);
+        console.log(statusChat);
+      } else {
+        console.error("Error fetching chat status:", await response.text());
+      }
+    } catch (error) {
+      console.error("Error fetching chat status:", error);
+    }
   };
 
   const handleChatsLinkClick = () => {
@@ -97,6 +121,12 @@ const Page_chats_a = () => {
               acceptedChats={acceptedChats}
               setAcceptedChats={setAcceptedChats}
               onCloseChat={handleCloseChat}
+
+              isAccepted={isAccepted}
+              onChatAccepted={() => setIsAccepted(true)}
+
+              statusChat={statusChat}
+              onStatus={() => setStatusChat(true)}
             />
           </div>
           <div className="info">

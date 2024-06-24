@@ -14,7 +14,16 @@ import Swal from "sweetalert2";
 import formatMessageTime from "../../../../Config/formatMessageTime";
 import ReactHtmlParser from "react-html-parser";
 
-const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
+const Chat_a = ({
+  selectedChat,
+  messages,
+  setMessages,
+  onCloseChat,
+  isAccepted,
+  onChatAccepted,
+  statusChat,
+  onStatus,
+}) => {
   const [messageInput, setMessageInput] = useState("");
   const [sender_id, setSender_id] = useState(null);
   const [clientID, setClientID] = useState(null);
@@ -29,17 +38,15 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
 
-  const [isAccepted, setIsAccepted] = useState(false);
+  // const [isAccepted, setIsAccepted] = useState(false);
 
   const role = localStorage.getItem("role");
-
 
   useEffect(() => {
     const admin_Id = localStorage.getItem("adminId");
 
     const admin_Id_Integer = parseInt(admin_Id, 10);
     setSender_id(admin_Id_Integer);
-
   }, [sender_id]);
 
   useEffect(() => {
@@ -52,18 +59,17 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
     socket.on("newMessage", handleNewMessage);
     // socket.on("newImageMessage", handleNewMessage);
 
-  
-
     socket.on("chatDeleted", ({ chatId }) => {
       if (selectedChat?.id === chatId) {
         onCloseChat();
       }
     });
 
-     // Escuchar el evento 'chatAccepted' para actualizar el estado isAccepted
-     socket.on("chatAccepted", ({ chatId }) => {
+    // Escuchar el evento 'chatAccepted' para actualizar el estado isAccepted
+    socket.on("chatAccepted", ({ chatId }) => {
       if (chatId === selectedChat?.id) {
-        setIsAccepted(true);
+        onChatAccepted();
+        onStatus();
       }
     });
 
@@ -71,15 +77,15 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
     socket.on("chatClosed", ({ chatId }) => {
       if (chatId === selectedChat?.id) {
         onCloseChat();
+        onStatus();
       }
     });
 
     if (selectedChat?.admin_id != null) {
-      setIsAccepted(true);
+      onChatAccepted();
     } else {
-      setIsAccepted(false);
+      // setIsAccepted(false);
     }
-
 
     return () => {
       // Limpiar la suscripción al desmontar el componente
@@ -88,14 +94,12 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
       socket.off("chatAccepted");
       socket.off("chatClosed");
     };
-  }, [selectedChat, setMessages]);
+  }, [selectedChat, setMessages, statusChat]);
 
   useEffect(() => {
     if (selectedChat) {
       socket.emit("joinChat", selectedChat.id);
       setClientID(selectedChat.client_id);
-
-    
 
       return () => {
         socket.emit("leaveChat", selectedChat.id);
@@ -164,7 +168,9 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
         }));
 
         socket.emit("chatAccepted", { chatId, adminId: sender_id });
-        setIsAccepted(true);
+        onChatAccepted();
+        onStatus();
+        console.log(statusChat);
       }
     } catch (error) {
       console.error("Error accepting chat:", error);
@@ -476,8 +482,6 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
     onCloseChat();
   };
 
-
-
   return (
     <>
       <div className="screen_chat">
@@ -568,7 +572,7 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
         </div>
 
         <div className="input_area">
-          {selectedChat.status === "closed" && (
+          {statusChat === false && (
             <>
               <p className="close">
                 Este chat ha sido finalizado permantentemente,{" "}
@@ -577,7 +581,7 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
             </>
           )}
 
-          {!isAccepted && selectedChat.status !== "closed" && (
+          {!isAccepted && statusChat === true && (
             <div className="input_area">
               <button
                 className="accept_chat_button"
@@ -588,7 +592,7 @@ const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
             </div>
           )}
 
-          {isAccepted && selectedChat.status !== "closed" && (
+          {isAccepted && statusChat === true && (
             <>
               <div className="input">
                 <input

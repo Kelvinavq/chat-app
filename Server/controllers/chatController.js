@@ -673,18 +673,19 @@ exports.getChatStatus = async (req, res) => {
     const query = `SELECT admin_id, status FROM chats WHERE id = ?`;
     db.query(query, [chatId], (err, result) => {
       if (err) {
-        console.error("Error fetching chat status:", err);
-        res.status(500).json({ error: "An error occurred while fetching chat status" });
-      } else {
-        if (result.length === 0) {
-          res.status(404).json({ error: "Chat not found" });
-        } else {
-          res.status(200).json({ status: result[0].status, admin_id: result[0].admin_id });
-        }
+        console.error('Error fetching chat status:', err);
+        return res.status(500).json({ error: 'An error occurred while fetching chat status' });
+      } 
+      
+      if (result.length === 0) {
+        return res.status(404).json({ error: 'Chat not found' });
       }
+      
+      const isActive = result[0].status === 'active';
+      res.status(200).json({ status: isActive, admin_id: result[0].admin_id });
     });
   } catch (error) {
-    console.error("Error fetching chat status:", error);
-    res.status(500).json({ error: "An error occurred while fetching chat status" });
+    console.error('Error fetching chat status:', error);
+    res.status(500).json({ error: 'An error occurred while fetching chat status' });
   }
 };
