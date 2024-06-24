@@ -15,7 +15,7 @@
   position: relative;
 }
 
-.list_chats .title .btnSidebar{
+.list_chats .title .btnSidebar {
   display: none;
 }
 
@@ -89,7 +89,7 @@
   background: var(--button);
 }
 
-.list_chats .items .item.active {
+.list_chats .items .item.selected {
   background: var(--dark-2);
 }
 
@@ -139,6 +139,11 @@
   font-weight: 500;
   color: var(--white);
   text-transform: capitalize;
+}
+
+.list_chats .items .item.closed .content h4,
+.list_chats .items .item.closed .content p {
+  color: var(--gray);
 }
 
 .list_chats .items .item .content p {
@@ -195,7 +200,7 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  width: 140px;
+  width: 160px;
   gap: 12px;
   right: 30px;
   top: 30px;
@@ -206,6 +211,7 @@
   border-radius: 15px;
   z-index: 9;
   padding: 10px;
+  font-size: 0.9em;
 }
 
 .list_chats .dropdown .dropdown-content button {

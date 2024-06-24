@@ -12,16 +12,25 @@ import Config from "../../../../Config/Config";
 
 const List_chat = ({ onChatClick }) => {
   const [chats, setChats] = useState([]);
-  const [onlineStatus, setOnlineStatus] = useState({});
   const [adminTeamIds, setAdminTeamIds] = useState([]);
-  const [lastClientChatId, setLastClientChatId] = useState(null);
-  const [clientStatuses, setClientStatuses] = useState({});
   const [filterUnread, setFilterUnread] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const filterRef = useRef(null);
+  const [selectedChatId, setSelectedChatId] = useState(null);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState({});
 
   const adminId = localStorage.getItem("adminId");
   const role = localStorage.getItem("role");
+
+  // Cargar el estado inicial de unreadMessagesCount desde localStorage
+  useEffect(() => {
+    const storedUnreadMessagesCount = localStorage.getItem(
+      "unreadMessagesCount"
+    );
+    if (storedUnreadMessagesCount) {
+      setUnreadMessagesCount(JSON.parse(storedUnreadMessagesCount));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchAdminTeams = async () => {
@@ -46,41 +55,31 @@ const List_chat = ({ onChatClick }) => {
 
   useEffect(() => {
     if (adminTeamIds.length > 0) {
-      fetch(`${Config.server_api}api/chats/list/${adminId}`)
+      fetch(`${Config.server_api}api/chats/list/${adminId}?role=${role}`)
         .then((response) => response.json())
         .then((data) => {
           const filteredChats = data.chats.filter((chat) =>
             adminTeamIds.includes(chat.team_id)
           );
-
-          setChats(filteredChats);
+          setChats(sortChatsByTime(filteredChats));
+          const initialUnreadCount = {};
+          filteredChats.forEach((chat) => {
+            initialUnreadCount[chat.id] = chat.unread_messages_count;
+          });
+          setUnreadMessagesCount(initialUnreadCount);
+          localStorage.setItem(
+            "unreadMessagesCount",
+            JSON.stringify(initialUnreadCount)
+          );
         })
         .catch((error) => {
           console.error("Error fetching chat list:", error);
         });
 
-      socket.on("newChatNotification", (chatData) => {
-        if (adminTeamIds.includes(chatData.team_id)) {
-          chatData.lastMessageTime = chatData.timestamp;
-          setChats((prevChats) => {
-            const updatedChats = [chatData, ...prevChats];
-            return sortChatsByTime(updatedChats);
-          });
-        }
-      });
-
-      const handleUserStatusUpdate = ({ clientId, isOnline }) => {
-        setClientStatuses((prevStatuses) => ({
-          ...prevStatuses,
-          [clientId]: isOnline,
-        }));
-      };
-
       socket.on("chatOpened", (chatId) => {
         setChats((prevChats) =>
           prevChats.map((chat) => {
             if (chat.id == chatId) {
-              console.log("Chat updated:", chat); // Imprime el chat actualizado
               return { ...chat, unread_messages_count: 0 };
             } else {
               return chat;
@@ -89,49 +88,94 @@ const List_chat = ({ onChatClick }) => {
         );
       });
 
-      socket.on("updateUserStatus", handleUserStatusUpdate);
-
       socket.on("newMessage", (messageData) => {
-        console.log("mensaje nuevo" + messageData);
+        console.log(messageData);
+
         setChats((prevChats) => {
           const chatIndex = prevChats.findIndex(
-            (chat) => chat.id == messageData.chatId
+            (chat) => chat.id === messageData.chatId
           );
-
           if (chatIndex !== -1) {
             const updatedChat = {
               ...prevChats[chatIndex],
               lastMessageTime: new Date(messageData.created_at).getTime(),
+              lastMessage: messageData.message,
             };
             const updatedChats = [
-              updatedChat,
               ...prevChats.slice(0, chatIndex),
+              updatedChat,
               ...prevChats.slice(chatIndex + 1),
             ];
             return sortChatsByTime(updatedChats);
+          } else {
+            const newChat = {
+              id: messageData.chatId,
+              lastMessageTime: new Date(messageData.created_at).getTime(),
+              lastMessage: messageData.message,
+            };
+            return sortChatsByTime([newChat, ...prevChats]);
           }
-
-          return prevChats;
         });
       });
 
+      socket.on("chatAccepted", ({ chatId, adminId }) => {
+        const currentAdminId = localStorage.getItem("adminId");
+
+        if (role !== "admin") {
+          if (adminId != currentAdminId) {
+            setChats((prevChats) =>
+              prevChats.filter((chat) => chat.id !== chatId)
+            );
+          }
+        }
+      });
+
+      socket.on("newChatNotification", (chatData) => {
+        if (adminTeamIds.includes(chatData.team_id)) {
+          setChats((prevChats) => {
+            const existingChatIndex = prevChats.findIndex(
+              (chat) => chat.id === chatData.id
+            );
+            if (existingChatIndex !== -1) {
+              const updatedChats = [...prevChats];
+              updatedChats[existingChatIndex] = chatData;
+              return sortChatsByTime(updatedChats);
+            } else {
+              return sortChatsByTime([...prevChats, chatData]);
+            }
+          });
+          // Actualizar el contador de mensajes no leídos en localStorage
+          setUnreadMessagesCount((prevUnreadMessagesCount) => {
+            const updatedCount = {
+              ...prevUnreadMessagesCount,
+              [chatData.id]: chatData.unread_messages_count,
+            };
+            localStorage.setItem(
+              "unreadMessagesCount",
+              JSON.stringify(updatedCount)
+            );
+            return updatedCount;
+          });
+        }
+      });
+
+      socket.on("chatDeleted", ({ chatId }) => {
+        setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
+      });
+
+ 
+
       return () => {
         socket.off("newChatNotification");
-        socket.off("updateUserStatus", handleUserStatusUpdate);
         socket.off("newMessage");
         socket.off("chatOpened");
+        socket.off("chatAccepted");
+        socket.off("chatDeleted");
       };
     }
   }, [adminId, adminTeamIds]);
 
   useEffect(() => {
-    socket.on("updateUserStatus", (data) => {
-      setOnlineStatus((prevStatus) => ({
-        ...prevStatus,
-        [data.clientId]: data.isOnline,
-      }));
-    });
-
     socket.on("chatArchived", (data) => {
       setChats((prevChats) =>
         prevChats.filter((chat) => chat.id !== data.chatId)
@@ -139,13 +183,14 @@ const List_chat = ({ onChatClick }) => {
     });
 
     return () => {
-      socket.off("updateUserStatus");
+      // socket.off("updateUserStatus");
       socket.off("chatArchived");
     };
   }, []);
 
   const handleChatClick = async (chatId) => {
     try {
+      
       const response = await fetch(
         `${Config.server_api}api/chats/open-chat/${chatId.id}`,
         {
@@ -165,6 +210,18 @@ const List_chat = ({ onChatClick }) => {
         );
         // Lógica para manejar el clic en un chat específico
         onChatClick(chatId);
+        setSelectedChatId(chatId.id);
+
+        // Actualizar el contador de mensajes no leídos en localStorage
+        setUnreadMessagesCount((prevUnreadMessagesCount) => {
+          const updatedCount = { ...prevUnreadMessagesCount };
+          updatedCount[chatId.id] = 0;
+          localStorage.setItem(
+            "unreadMessagesCount",
+            JSON.stringify(updatedCount)
+          );
+          return updatedCount;
+        });
       } else {
         console.error("Error al abrir el chat");
       }
@@ -222,7 +279,7 @@ const List_chat = ({ onChatClick }) => {
 
     Swal.fire({
       title: "¿Estás seguro?",
-      text: "¿Estás seguro de que deseas cerrar este chat?",
+      text: "¡Una vez cerrado no podrás reabrirlo nuevamente!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, cerrar",
@@ -241,6 +298,8 @@ const List_chat = ({ onChatClick }) => {
           );
 
           if (response.ok) {
+            // Emitir un evento a través de WebSocket para notificar a los clientes
+            socket.emit("chatClosed", { chatId: chat_id });
             Swal.fire({
               title: "Éxito",
               text: "Chat cerrado con éxito.",
@@ -272,7 +331,7 @@ const List_chat = ({ onChatClick }) => {
     const chat_id = chatId;
     Swal.fire({
       title: "¿Estás seguro?",
-      text: "¿Estás seguro de que deseas borrar este chat?",
+      text: "¡Esta acción eliminará permanentemente el historial de mensajes en este chat!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, borrar",
@@ -292,6 +351,9 @@ const List_chat = ({ onChatClick }) => {
           );
 
           if (response.ok) {
+            // Emitir un evento a través de WebSocket para notificar a los clientes
+            socket.emit("chatClosed", { chatId: chat_id });
+            socket.emit("chatDeleted", { chatId: chat_id });
             Swal.fire({
               title: "Éxito",
               text: "Chat borrado con éxito.",
@@ -344,6 +406,8 @@ const List_chat = ({ onChatClick }) => {
     ? chats.filter((chat) => chat.unread_messages_count > 0)
     : chats;
 
+
+
   return (
     <>
       <div className="list_chats">
@@ -363,26 +427,23 @@ const List_chat = ({ onChatClick }) => {
 
         <div className="items">
           {sortChatsByTime(filteredChats).map((chat) => (
-            <div
-              key={chat.id}
-              className="item"
-              onClick={() => handleChatClick(chat)}
-            >
+          <div
+          key={chat.id}
+          className={`item ${
+            selectedChatId === chat.id ? "selected" : ""
+          } ${chat.status}`}
+          onClick={() => handleChatClick(chat)}
+        >
               <div className="content_text">
                 <div className="img">
-                  <span
-                    className={
-                      clientStatuses[chat.client_id] ? "online" : "offline"
-                    }
-                  ></span>
                   <img src={img} alt="" />
                 </div>
                 <div className="content">
                   <h4>{chat.username}</h4>
                   <p>{chat.team_name}</p>
-                  {chat.unread_messages_count > 0 && (
+                  {unreadMessagesCount[chat.id] > 0 && (
                     <span className="unread-count">
-                      {chat.unread_messages_count}
+                      {unreadMessagesCount[chat.id]}
                     </span>
                   )}
                 </div>
@@ -391,7 +452,7 @@ const List_chat = ({ onChatClick }) => {
               {role === "admin" ? (
                 <DropdownMenu
                   options={[
-                    { label: "Cerrar chat", value: "cerrar" },
+                    { label: "Finalizar chat", value: "cerrar" },
                     { label: "Borrar chat", value: "borrar" },
                     { label: "Archivar", value: "archivar" },
                   ]}
@@ -400,7 +461,7 @@ const List_chat = ({ onChatClick }) => {
               ) : (
                 <DropdownMenu
                   options={[
-                    { label: "Cerrar chat", value: "cerrar" },
+                    { label: "Finalizar chat", value: "cerrar" },
                     { label: "Archivar", value: "archivar" },
                   ]}
                   onOptionClick={(option) => handleOptionClick(option, chat.id)}
@@ -429,6 +490,11 @@ const DropdownMenu = ({ options, onOptionClick }) => {
     }
   };
 
+  const handleButtonClick = (event) => {
+    setShowMenu(!showMenu);
+    event.stopPropagation(); // Detener la propagación del evento para evitar que se propague al item
+  };
+
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
@@ -438,7 +504,7 @@ const DropdownMenu = ({ options, onOptionClick }) => {
 
   return (
     <div className="dropdown" ref={menuRef}>
-      <button onClick={() => setShowMenu(!showMenu)}>
+      <button onClick={handleButtonClick}>
         <MoreHorizIcon />
       </button>
       {showMenu && (

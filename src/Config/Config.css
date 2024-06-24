@@ -111,6 +111,14 @@
     justify-content: start;
     margin: 0 0;
   }
+
+  .swal2-popup.swal2-toast {
+    background-color: var(--dark) !important;
+  }
+
+  .swal2-timer-progress-bar{
+    background: var(--primary);
+  }
   
   h1 {
     font-size: 2em;

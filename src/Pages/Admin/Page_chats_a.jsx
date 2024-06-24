@@ -6,6 +6,8 @@ import Chat_a from "../../Components/Admin/Chats/Chat/Chat_a";
 import Info_Chat_a from "../../Components/Admin/Chats/Info_Chat/Info_Chat_a";
 import Config from "../../Config/Config";
 
+
+
 const Page_chats_a = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -13,6 +15,11 @@ const Page_chats_a = () => {
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [acceptedChats, setAcceptedChats] = useState({});
 
+  const handleCloseChat = () => {
+    setSelectedChat(null); 
+    setIsChatVisible(false); // Mostrar la lista de chats y ocultar el chat
+
+  };
 
   const handleChatClick = (chat) => {
     setSelectedChat(chat);
@@ -89,6 +96,7 @@ const Page_chats_a = () => {
               setMessages={setMessages}
               acceptedChats={acceptedChats}
               setAcceptedChats={setAcceptedChats}
+              onCloseChat={handleCloseChat}
             />
           </div>
           <div className="info">

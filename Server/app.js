@@ -10,7 +10,7 @@ const socket = require("./Config/socket");
 const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
 // Crear el servidor HTTP
 const server = http.createServer(app);
@@ -22,11 +22,11 @@ const isProduction = process.env.NODE_ENV === "production";
 
 // Obtener orígenes permitidos de las variables de entorno
 const getClientOrigins = () => {
-  const origins = isProduction 
-    ? process.env.CLIENT_ORIGIN.split(',')
-    : process.env.CLIENT_ORIGIN_LOCAL.split(',');
+  const origins = isProduction
+    ? process.env.CLIENT_ORIGIN.split(",")
+    : process.env.CLIENT_ORIGIN_LOCAL.split(",");
 
-  return origins.map(origin => origin.trim());
+  return origins.map((origin) => origin.trim());
 };
 
 const allowedOrigins = getClientOrigins();
@@ -39,7 +39,7 @@ app.use(
       // Permitir solicitudes sin origen, por ejemplo, desde aplicaciones móviles o solicitudes curl
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = 'El origen CORS no está permitido.';
+        const msg = "El origen CORS no está permitido.";
         return callback(new Error(msg), false);
       }
       return callback(null, true);
@@ -82,24 +82,10 @@ app.use((err, req, res, next) => {
 });
 
 const onlineClients = {};
+const unreadCounts = {};
 
 // Configuración del WebSocket
 io.on("connection", (socket) => {
-  console.log("New WebSocket connection");
-
-  socket.on("disconnect", () => {
-    if (socket.clientId) {
-      console.log(`Client ${socket.clientId} disconnected`);
-      delete onlineClients[socket.clientId];
-      io.emit("updateUserStatus", {
-        clientId: socket.clientId,
-        isOnline: false,
-      });
-    } else {
-      console.log("Client disconnected");
-    }
-  });
-
   socket.on("clientOnline", (clientId) => {
     socket.clientId = clientId;
     onlineClients[clientId] = true;
@@ -130,28 +116,82 @@ io.on("connection", (socket) => {
       message: data.message,
       image: data.image,
       created_at: new Date().toISOString().replace("T", " ").substring(0, 19),
+      sender: data.sender,
     };
-    console.log("New message:", messageData);
     const chat_id = data.chatId;
-
-    // Emitir el mensaje a todos los clientes
-    // io.to(data.chatId).emit("newMessage", messageData);
-    // io.emit("newMessage", messageData)
 
     io.to("adminRoom").emit("newMessage", messageData);
     io.to(chat_id).emit("newMessage", messageData);
 
     if (data.image) {
-      // io.to(data.chatId).emit("newImageMessage", messageData);
-      // io.emit("newImageMessage", messageData)
-
       io.to("adminRoom").emit("newImageMessage", messageData);
       io.to(data.chatId).emit("newImageMessage", messageData);
     }
+
+    // Actualizar contador de mensajes no leídos
+    if (!unreadCounts[chat_id]) {
+      unreadCounts[chat_id] = 0;
+    }
+    unreadCounts[chat_id]++;
+
+    // Emitir el nuevo contador a los administradores
+    io.to("adminRoom").emit("updateUnreadCount", {
+      chatId: chat_id,
+      unreadCount: unreadCounts[chat_id],
+    });
   });
+
   socket.on("chatOpened", (chatId) => {
     console.log(`Chat ${chatId} opened`);
     io.emit("chatOpened", chatId);
+  });
+
+  // Emitir evento de chat cerrado
+  socket.on("chatClosed", ({ chatId }) => {
+    io.to(chatId).emit("chatClosed", { chatId });
+  });
+
+  socket.on("chatDeleted", ({ chatId }) => {
+    io.emit("chatDeleted", { chatId });
+  });
+
+  socket.on("chatAccepted", ({ chatId, adminId }) => {
+    io.emit("chatAccepted", { chatId, adminId });
+  });
+
+  // Manejar el evento de estado del cliente
+  socket.on("clientStatus", ({ clientId, isOnline }) => {
+    if (isOnline) {
+      onlineClients[clientId] = socket.id;
+    } else {
+      delete onlineClients[clientId];
+    }
+
+    // Emitir el estado a todos los administradores conectados
+    io.emit("updateUserStatus", { clientId, isOnline });
+  });
+
+  // Manejar la solicitud del estado de los clientes
+  socket.on("requestClientStatuses", () => {
+    const clientStatuses = Object.keys(onlineClients).reduce(
+      (statuses, clientId) => {
+        statuses[clientId] = true; // ya que están en onlineClients, están online
+        return statuses;
+      },
+      {}
+    );
+    socket.emit("clientStatuses", clientStatuses);
+  });
+
+  // Manejar la desconexión del cliente
+  socket.on("disconnect", () => {
+    const clientId = Object.keys(onlineClients).find(
+      (key) => onlineClients[key] === socket.id
+    );
+    if (clientId) {
+      delete onlineClients[clientId];
+      io.emit("updateUserStatus", { clientId, isOnline: false });
+    }
   });
 });
 
@@ -172,3 +212,4 @@ server.listen(PORT, () => {
 
 // Exportar el servidor para que pueda ser utilizado en otras partes de la aplicación
 module.exports = { server };
+//

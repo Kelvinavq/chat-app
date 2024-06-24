@@ -1,0 +1,9 @@
+- Corregir contador de mensajes nuevos
+- vista de halcón a los administradores 
+
+
+- Corregir estatus online - Offline * 
+- corregir que al aceptar el chat desaparezca automáticamente del resto de usuarios *
+- poder reabrir chats ------------descartado------------
+- al cerrar chat se le cierre al cliente sin recargar página * 
+- iniciar sesion solo con usuario y contraseña (eliminar mail) *

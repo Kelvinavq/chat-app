@@ -191,15 +191,13 @@ const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
           )}
         </div>
         <div className="items_bottom">
-          {role === "admin" && (
-            <Link
-              to={"/admin/clientes"}
-              className={`item ${isActive("/admin/clientes")} `}
-            >
-              <ManageAccountsOutlinedIcon />
-              <small>Clientes</small>
-            </Link>
-          )}
+          <Link
+            to={"/admin/clientes"}
+            className={`item ${isActive("/admin/clientes")} `}
+          >
+            <ManageAccountsOutlinedIcon />
+            <small>Clientes</small>
+          </Link>
 
           <Link
             to={"/admin/ajustes"}
@@ -243,8 +241,12 @@ const Sidebar_a = ({ onChatClick, onChatsLinkClick }) => {
             onClick={toggleProfileDropdown}
             ref={profileRef}
           >
-            <img
-              src={`https://463siemprepagachat.com/server/public/assets/profile/${adminProfile.image}`}
+              <img
+              src={
+                adminProfile.image
+                  ? `https://463siemprepagachat.com/server/public/assets/profile/${adminProfile.image}`
+                  : imgUser
+              }
               alt="User"
             />
             {showProfileDropdown && (

@@ -58,6 +58,8 @@ router.post(
 // ruta para marcar chat abierto
 router.put("/open-chat/:chatId", chatController.openChat);
 
+router.get("/status/:id", chatController.getChatStatus);
+
 
 // Exportar las rutas
 module.exports = router;

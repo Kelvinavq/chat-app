@@ -12,4 +12,6 @@ router.put('/:id/update', clientController.update);
 // Ruta para editar un cliente
 router.put('/:id/update-password', clientController.updatePassword);
 
+
+
 module.exports = router;

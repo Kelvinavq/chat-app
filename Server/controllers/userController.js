@@ -1,14 +1,15 @@
 const db = require("../Config/database");
 const bcrypt = require("bcryptjs");
 
+// controlador para registrar el usuario y comprobar si esta registrado o no
 exports.register = async (req, res) => {
-  const { username, email, password, deviceId } = req.body;
+  const { username, password, deviceId } = req.body;
 
   try {
     // Verificar si el cliente ya existe en la base de datos
-    const clientQuery = 'SELECT * FROM clients WHERE email = ?';
+    const clientQuery = 'SELECT * FROM clients WHERE BINARY username = ?';
     const client = await new Promise((resolve, reject) => {
-      db.query(clientQuery, [email], (err, results) => {
+      db.query(clientQuery, [username], (err, results) => {
         if (err) {
           reject(err);
         } else {
@@ -20,7 +21,7 @@ exports.register = async (req, res) => {
     if (client) {
       // Si el cliente existe, verificar la contraseña
       const isPasswordCorrect = await bcrypt.compare(password, client.password);
-      if (isPasswordCorrect && client.username === username) {
+      if (isPasswordCorrect) {
         // Registrar el dispositivo para el cliente existente
         const deviceInsertQuery = `
           INSERT INTO devices (client_id, device_fingerprint)
@@ -38,20 +39,20 @@ exports.register = async (req, res) => {
 
         return res.status(200).json({ message: 'Device registered to existing user successfully' });
       } else {
-        return res.status(400).json({ error: 'Username, email or password is incorrect' });
+        return res.status(400).json({ error: 'Username or password is incorrect' });
       }
     } else {
       // Si el cliente no existe, crear un nuevo registro de cliente
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const clientInsertQuery = `
-        INSERT INTO clients (username, email, password)
-        VALUES (?, ?, ?)
+        INSERT INTO clients (username, password)
+        VALUES (?, ?)
       `;
       const clientInsertResult = await new Promise((resolve, reject) => {
         db.query(
           clientInsertQuery,
-          [username, email, hashedPassword],
+          [username, hashedPassword],
           (err, result) => {
             if (err) {
               reject(err);
@@ -85,6 +86,7 @@ exports.register = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while registering user and device' });
   }
 };
+
 
 
 // Método para verificar el estado de registro del cliente y su dispositivo

@@ -4,7 +4,7 @@ import img from "../../../../assets/logo.png";
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-
+import CloseIcon from "@mui/icons-material/Close";
 import Config from "../../../../Config/Config";
 import Button_sidebar from "../../Sidebar/Button_sidebar";
 
@@ -14,12 +14,11 @@ import Swal from "sweetalert2";
 import formatMessageTime from "../../../../Config/formatMessageTime";
 import ReactHtmlParser from "react-html-parser";
 
-const Chat_a = ({ selectedChat, messages, setMessages }) => {
+const Chat_a = ({ selectedChat, messages, setMessages, onCloseChat }) => {
   const [messageInput, setMessageInput] = useState("");
   const [sender_id, setSender_id] = useState(null);
   const [clientID, setClientID] = useState(null);
   const endOfMessagesRef = useRef(null);
-  const [isClientOnline, setIsClientOnline] = useState(false);
   const [acceptedChats, setAcceptedChats] = useState({});
   const [adminIdAcceptChat, setAdminIdAcceptChat] = useState(null);
 
@@ -29,13 +28,18 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+
+  const [isAccepted, setIsAccepted] = useState(false);
+
   const role = localStorage.getItem("role");
+
 
   useEffect(() => {
     const admin_Id = localStorage.getItem("adminId");
 
     const admin_Id_Integer = parseInt(admin_Id, 10);
     setSender_id(admin_Id_Integer);
+
   }, [sender_id]);
 
   useEffect(() => {
@@ -48,10 +52,41 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
     socket.on("newMessage", handleNewMessage);
     // socket.on("newImageMessage", handleNewMessage);
 
+  
+
+    socket.on("chatDeleted", ({ chatId }) => {
+      if (selectedChat?.id === chatId) {
+        onCloseChat();
+      }
+    });
+
+     // Escuchar el evento 'chatAccepted' para actualizar el estado isAccepted
+     socket.on("chatAccepted", ({ chatId }) => {
+      if (chatId === selectedChat?.id) {
+        setIsAccepted(true);
+      }
+    });
+
+    // Escuchar el evento 'chatClosed' para manejar la actualización de estado cuando se cierra el chat desde otro lado
+    socket.on("chatClosed", ({ chatId }) => {
+      if (chatId === selectedChat?.id) {
+        onCloseChat();
+      }
+    });
+
+    if (selectedChat?.admin_id != null) {
+      setIsAccepted(true);
+    } else {
+      setIsAccepted(false);
+    }
+
+
     return () => {
       // Limpiar la suscripción al desmontar el componente
       socket.off("newMessage", handleNewMessage);
       socket.off("newImageMessage", handleNewMessage);
+      socket.off("chatAccepted");
+      socket.off("chatClosed");
     };
   }, [selectedChat, setMessages]);
 
@@ -60,6 +95,8 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       socket.emit("joinChat", selectedChat.id);
       setClientID(selectedChat.client_id);
 
+    
+
       return () => {
         socket.emit("leaveChat", selectedChat.id);
       };
@@ -67,17 +104,23 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
   }, [selectedChat, clientID, adminIdAcceptChat]);
 
   useEffect(() => {
-    const handleUserStatusUpdate = ({ clientId, isOnline }) => {
+    // Emitir el evento para pedir el estado actual de los clientes
+    socket.emit("requestClientStatuses");
+
+    socket.on("updateUserStatus", ({ clientId, isOnline }) => {
       setClientStatuses((prevStatuses) => ({
         ...prevStatuses,
         [clientId]: isOnline,
       }));
-    };
+    });
 
-    socket.on("updateUserStatus", handleUserStatusUpdate);
+    socket.on("clientStatuses", (statuses) => {
+      setClientStatuses(statuses);
+    });
 
     return () => {
-      socket.off("updateUserStatus", handleUserStatusUpdate);
+      socket.off("updateUserStatus");
+      socket.off("clientStatuses");
     };
   }, []);
 
@@ -87,14 +130,6 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       endOfMessagesRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
-
-  if (!selectedChat) {
-    return (
-      <div className="screen_chat seleccionar">
-        Seleccione un chat para comenzar
-      </div>
-    );
-  }
 
   const handleAcceptChat = async (chatId) => {
     try {
@@ -127,6 +162,9 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
           ...prevAcceptedChats,
           [chatId]: true,
         }));
+
+        socket.emit("chatAccepted", { chatId, adminId: sender_id });
+        setIsAccepted(true);
       }
     } catch (error) {
       console.error("Error accepting chat:", error);
@@ -164,6 +202,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
       sender_id: sender_id,
       message,
       created_at: timestamp,
+      sender: role,
     };
 
     try {
@@ -263,9 +302,10 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
 
   const handleCloseChat = (chat) => {
     const chat_id = chat.id;
+
     Swal.fire({
       title: "¿Estás seguro?",
-      text: "¿Estás seguro de que deseas cerrar este chat?",
+      text: "¡Una vez cerrado no podrás reabrirlo nuevamente!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, cerrar",
@@ -285,6 +325,8 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
           );
 
           if (response.ok) {
+            // Emitir un evento a través de WebSocket para notificar a los clientes
+            socket.emit("chatClosed", { chatId: chat_id });
             Swal.fire({
               title: "Éxito",
               text: "Chat cerrado con éxito.",
@@ -316,7 +358,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
     const chat_id = chat.id;
     Swal.fire({
       title: "¿Estás seguro?",
-      text: "¿Estás seguro de que deseas borrar este chat?",
+      text: "¡Esta acción eliminará permanentemente el historial de mensajes en este chat!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, borrar",
@@ -336,6 +378,9 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
           );
 
           if (response.ok) {
+            // Emitir un evento a través de WebSocket para notificar a los clientes
+            socket.emit("chatClosed", { chatId: chat_id });
+            socket.emit("chatDeleted", { chatId: chat_id });
             Swal.fire({
               title: "Éxito",
               text: "Chat borrado con éxito.",
@@ -419,6 +464,20 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
     setShowImageModal(true);
   };
 
+  if (!selectedChat) {
+    return (
+      <div className="screen_chat seleccionar">
+        Seleccione un chat para comenzar
+      </div>
+    );
+  }
+
+  const closeChat = () => {
+    onCloseChat();
+  };
+
+
+
   return (
     <>
       <div className="screen_chat">
@@ -446,7 +505,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
               {role === "admin" ? (
                 <DropdownMenu
                   options={[
-                    { label: "Cerrar chat", value: "cerrar" },
+                    { label: "Finalizar chat", value: "cerrar" },
                     { label: "Borrar chat", value: "borrar" },
                     { label: "Archivar chat", value: "archivar" },
                   ]}
@@ -457,7 +516,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
               ) : (
                 <DropdownMenu
                   options={[
-                    { label: "Cerrar chat", value: "cerrar" },
+                    { label: "Finalizar chat", value: "cerrar" },
                     { label: "Archivar chat", value: "archivar" },
                   ]}
                   onOptionClick={(option) =>
@@ -465,6 +524,9 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
                   }
                 />
               )}
+              <button onClick={closeChat}>
+                <CloseIcon />
+              </button>
             </div>
           </div>
         </div>
@@ -474,7 +536,10 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
             <div
               key={index}
               className={`message ${
-                message.sender_id != sender_id ? "received" : "sent"
+                (role === "admin" || role === "agent") &&
+                (message.sender === "admin" || message.sender === "agent")
+                  ? "sent"
+                  : "received"
               }`}
             >
               <div
@@ -482,7 +547,7 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
                   message.type === "image" ? "image" : "text"
                 }`}
               >
-                {message.message && <p>{ReactHtmlParser(message.message)}</p>}
+                {ReactHtmlParser(message.message)}
 
                 {message.image && (
                   <div className="message_image_container">
@@ -503,52 +568,58 @@ const Chat_a = ({ selectedChat, messages, setMessages }) => {
         </div>
 
         <div className="input_area">
-  {selectedChat.status === "closed" ? (
-    <>
-      <p>Chat cerrado</p>
-    </>
-  ) : !acceptedChats[selectedChat.id] ? (
-    <div className="input_area">
-      <button
-        className="accept_chat_button"
-        onClick={() => handleAcceptChat(selectedChat.id)}
-      >
-        Aceptar Chat
-      </button>
-    </div>
-  ) : (
-    <>
-      <div className="input">
-        <input
-          type="text"
-          placeholder="Escribe un mensaje..."
-          value={messageInput}
-          onChange={(e) => setMessageInput(e.target.value)}
-          onKeyDown={handleMessageInputKeyDown}
-        />
-      </div>
+          {selectedChat.status === "closed" && (
+            <>
+              <p className="close">
+                Este chat ha sido finalizado permantentemente,{" "}
+                <strong>NO PUEDE REABRIRSE</strong>
+              </p>
+            </>
+          )}
 
-      <div className="buttons">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          style={{ display: "none" }}
-          id="imageUpload"
-        />
-        <button className="media">
-          <label htmlFor="imageUpload">
-            <CameraAltRoundedIcon />
-          </label>
-        </button>
-        <button className="send" onClick={handleSendMessage}>
-          <SendRoundedIcon />
-        </button>
-      </div>
-    </>
-  )}
-</div>
+          {!isAccepted && selectedChat.status !== "closed" && (
+            <div className="input_area">
+              <button
+                className="accept_chat_button"
+                onClick={() => handleAcceptChat(selectedChat.id)}
+              >
+                Aceptar Chat
+              </button>
+            </div>
+          )}
 
+          {isAccepted && selectedChat.status !== "closed" && (
+            <>
+              <div className="input">
+                <input
+                  type="text"
+                  placeholder="Escribe un mensaje..."
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyDown={handleMessageInputKeyDown}
+                />
+              </div>
+
+              <div className="buttons">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: "none" }}
+                  id="imageUpload"
+                />
+                <button className="media">
+                  <label htmlFor="imageUpload">
+                    <CameraAltRoundedIcon />
+                  </label>
+                </button>
+                <button className="send" onClick={handleSendMessage}>
+                  <SendRoundedIcon />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         {showImageModal && (
           <div className="image_modal" onClick={() => setShowImageModal(false)}>

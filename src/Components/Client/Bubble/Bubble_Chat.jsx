@@ -45,6 +45,30 @@ const Bubble_Chat = () => {
 
   const endOfMessagesRef = useRef(null);
 
+  const [isChatClosed, setIsChatClosed] = useState(false);
+  const role = "user";
+
+  const resetStates = () => {
+    setIsLastChatActive(false);
+    setIsRegistered(false);
+    setShowRegisterForm(false);
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setClientInfo(null);
+    setChatId(null);
+    setClientID(null);
+    setMessages([]);
+    setMessageInput("");
+    setImage(null);
+    setTeams([]);
+    setIsClientOnline(false);
+    setMessageWelcome([]);
+    setShowImageModal(false);
+    setSelectedImageUrl(null);
+    setIsChatClosed(false);
+  };
+
   const handleCloseChat = () => {
     setShowChat(false);
     setShowRegisterForm(false);
@@ -70,7 +94,6 @@ const Bubble_Chat = () => {
 
     // Listener para manejar los mensajes recibidos del servidor
     const handleNewMessage = (data) => {
-      
       // Verificar si el mensaje no está vacío antes de agregarlo al estado de mensajes
       if (
         (data.message && data.message.trim() !== "") ||
@@ -105,7 +128,35 @@ const Bubble_Chat = () => {
       socket.emit("joinChat", chatId);
     }
 
+    socket.on("chatClosed", ({ chatId: closedChatId }) => {
+      if (chatId === closedChatId) {
+        resetStates();
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-start",
+          showConfirmButton: false,
+          timer: 10000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+          },
+        });
+        Toast.fire({
+          icon: "info",
+          title: "El chat actual ha sido cerrado",
+        });
+      }
+    });
+
+    socket.on("chatAccepted", ({ chatId }) => {
+      console.log("chat aceptado", chatId);
+      setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
+    });
+
     return () => {
+      socket.off("chatClosed");
+      socket.off("chatAccepted");
       if (chatId) {
         socket.emit("leaveChat", chatId);
       }
@@ -113,19 +164,26 @@ const Bubble_Chat = () => {
   }, [chatId]);
 
   useEffect(() => {
-    const handleUserStatusUpdate = ({ clientId, isOnline }) => {
-      // Actualizar el estado del cliente según el evento recibido
-      if (clientID === clientId) {
-        setIsClientOnline(isOnline);
-      }
+    const handleConnect = () => {
+      socket.emit("clientStatus", { clientId: clientID, isOnline: true });
     };
 
-    // Escuchar el evento 'updateUserStatus' del servidor WebSocket
-    socket.on("updateUserStatus", handleUserStatusUpdate);
+    const handleDisconnect = () => {
+      socket.emit("clientStatus", { clientId: clientID, isOnline: false });
+    };
+
+    const handleBeforeUnload = () => {
+      socket.emit("clientStatus", { clientId: clientID, isOnline: false });
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      // Limpiar la suscripción al desmontar el componente
-      socket.off("updateUserStatus", handleUserStatusUpdate);
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [clientID]);
 
@@ -333,10 +391,18 @@ const Bubble_Chat = () => {
     e.preventDefault();
 
     // Validar que ningún campo quede vacío
-    if (!username || !email || !password) {
+    if (!username || !password) {
       Swal.fire({
         icon: "error",
-        text: "Please fill in all fields",
+        text: "Por favor, complete todos los campos",
+      });
+      return;
+    }
+
+    if (password.length < 4) {
+      Swal.fire({
+        icon: "error",
+        text: "La contraseña debe tener al menos 4 dígitos",
       });
       return;
     }
@@ -353,7 +419,6 @@ const Bubble_Chat = () => {
         },
         body: JSON.stringify({
           username,
-          email,
           password,
           deviceId,
         }),
@@ -373,7 +438,7 @@ const Bubble_Chat = () => {
       console.error("Error registering user:", error);
       Swal.fire({
         icon: "error",
-        text: "Registration failed. Please try again later",
+        text: "Usuario o contraseña incorrecto.",
       });
     }
   };
@@ -476,6 +541,7 @@ const Bubble_Chat = () => {
       formData.append("sender_id", sender_id);
       formData.append("message", message);
       formData.append("image", file);
+      formData.append("sender", role);
 
       try {
         const response = await fetch(
@@ -491,13 +557,13 @@ const Bubble_Chat = () => {
           throw new Error("Failed to save message to database");
         } else {
           const responseData = await response.json();
-          console.log("Backend response data:", responseData);
 
           const messageDataImage = {
             chatId: chat_id,
             sender_id: sender_id,
             image: responseData.imageUrl,
             created_at: timestamp,
+            sender: role,
           };
 
           setMessages([...messages, messageDataImage]);
@@ -550,6 +616,7 @@ const Bubble_Chat = () => {
             message: message,
             type: "text",
             created_at: timestamp,
+            sender: role,
           }),
         }
       );
@@ -567,6 +634,8 @@ const Bubble_Chat = () => {
         ]);
         socket.emit("sendMessage", { chatId, sender_id, message, timestamp });
         socket.emit("chatOpened", chatId);
+        // Emitir evento para actualizar contador de mensajes no leídos
+        // socket.emit("updateUnreadCount", { chatId });
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -646,12 +715,6 @@ const Bubble_Chat = () => {
                     onChange={(e) => setUsername(e.target.value)}
                   />
                   <input
-                    type="email"
-                    placeholder="Correo electronico"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <input
                     type="password"
                     placeholder="Contraseña"
                     value={password}
@@ -683,7 +746,7 @@ const Bubble_Chat = () => {
               </div>
 
               <div className="messages">
-                {isLastChatActive ? (
+                {isLastChatActive && !isChatClosed ? (
                   messages.map((message, index) => (
                     <div
                       key={index}
@@ -694,7 +757,7 @@ const Bubble_Chat = () => {
                       } new`}
                     >
                       {message.message && (
-                        <p> {ReactHtmlParser(message.message)}</p>
+                       ReactHtmlParser(message.message)
                       )}
                       {message.image && (
                         <img
@@ -738,40 +801,42 @@ const Bubble_Chat = () => {
                 )}
               </div>
 
-              <div className="message-box">
-                <div className="input">
-                  <textarea
-                    type="text"
-                    className="message-input"
-                    placeholder="Escribe un mensaje..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyDown={handleMessageInputKeyDown}
-                  ></textarea>
-                </div>
+              {isLastChatActive && !isChatClosed && (
+                <div className="message-box">
+                  <div className="input">
+                    <textarea
+                      type="text"
+                      className="message-input"
+                      placeholder="Escribe un mensaje..."
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      onKeyDown={handleMessageInputKeyDown}
+                    ></textarea>
+                  </div>
 
-                <div className="buttons">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    style={{ display: "none" }}
-                    id="imageUpload"
-                  />
-                  <button className="file">
-                    <label htmlFor="imageUpload">
-                      <CameraAltOutlinedIcon />
-                    </label>
-                  </button>
-                  <button
-                    type="submit"
-                    className="message-submit"
-                    onClick={handleSendMessage}
-                  >
-                    <SendRoundedIcon />
-                  </button>
+                  <div className="buttons">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      style={{ display: "none" }}
+                      id="imageUpload"
+                    />
+                    <button className="file">
+                      <label htmlFor="imageUpload">
+                        <CameraAltOutlinedIcon />
+                      </label>
+                    </button>
+                    <button
+                      type="submit"
+                      className="message-submit"
+                      onClick={handleSendMessage}
+                    >
+                      <SendRoundedIcon />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

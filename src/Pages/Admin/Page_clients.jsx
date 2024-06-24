@@ -12,7 +12,7 @@ const Page_clients = () => {
     const role = localStorage.getItem("role");
 
     
-    if (role === "admin") {
+    if (role === "admin" || role === "agent") {
       setrole(true);
     } else {
       Swal.fire({

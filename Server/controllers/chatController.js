@@ -19,9 +19,9 @@ exports.createChat = async (req, res) => {
         try {
           // Crear el chat en la base de datos
           const chatQuery =
-            "INSERT INTO chats (client_id, team_id) VALUES (?, ?)";
+            "INSERT INTO chats (client_id, team_id,unread_messages_count) VALUES (?, ?, ?)";
           await new Promise((resolve, reject) => {
-            db.query(chatQuery, [clientId, team_id], (err, result) => {
+            db.query(chatQuery, [clientId, team_id, 1], (err, result) => {
               if (err) return db.rollback(() => reject(err));
               chatId = result.insertId;
               resolve(chatId);
@@ -59,20 +59,25 @@ exports.createChat = async (req, res) => {
 
           // Obtener el username del cliente y el nombre del equipo
           const chatDataQuery = `
-            SELECT clients.username AS username, teams.name AS team_name, teams.id as team_id 
-            FROM clients 
-            INNER JOIN teams ON teams.id = ?
-            WHERE clients.id = ?
-          `;
+          SELECT clients.id AS client_id, clients.username AS username, teams.name AS team_name, teams.id as team_id, chats.unread_messages_count
+          FROM clients 
+          INNER JOIN teams ON teams.id = ?
+          INNER JOIN chats ON chats.id = ?
+          WHERE clients.id = ?
+        `;
           const chatData = await new Promise((resolve, reject) => {
-            db.query(chatDataQuery, [team_id, clientId], (err, result) => {
-              if (err) return db.rollback(() => reject(err));
-              if (result.length > 0) {
-                resolve(result[0]);
-              } else {
-                reject(new Error("No data found"));
+            db.query(
+              chatDataQuery,
+              [team_id, chatId, clientId],
+              (err, result) => {
+                if (err) return db.rollback(() => reject(err));
+                if (result.length > 0) {
+                  resolve(result[0]);
+                } else {
+                  reject(new Error("No data found"));
+                }
               }
-            });
+            );
           });
 
           db.commit((err) => {
@@ -84,8 +89,11 @@ exports.createChat = async (req, res) => {
               username: chatData.username,
               team_name: chatData.team_name,
               team_id: chatData.team_id,
+              clientId: chatData.client_id,
+              unread_messages_count: chatData.unread_messages_count,
             };
             io.emit("newChatNotification", newChatData);
+            // Actualizar el estado online del cliente
 
             resolve({
               message: "Chat and message created successfully",
@@ -109,7 +117,6 @@ exports.createChat = async (req, res) => {
 
 // Controlador para obtener todos los mensajes de un chat activo
 exports.getChatMessages = async (req, res) => {
-  
   try {
     const { chatId } = req.params;
 
@@ -135,36 +142,88 @@ exports.getChatMessages = async (req, res) => {
 // Controlador para crear un nuevo mensaje en un chat existente
 exports.createMessage = async (req, res) => {
   try {
-    const { chatId, sender_id, message, type } = req.body;
+    const { chatId, sender_id, message, type, sender } = req.body;
 
     // Insertar el nuevo mensaje en la base de datos
     const messageQuery =
-      "INSERT INTO messages (chat_id, sender_id, message, type) VALUES (?, ?, ?, ?)";
+      "INSERT INTO messages (chat_id, sender_id, message, type, sender) VALUES (?, ?, ?, ?, ?)";
     db.query(
       messageQuery,
-      [chatId, sender_id, message, type],
-      (err, result) => {
+      [chatId, sender_id, message, type, sender],
+      async (err, result) => {
         if (err) {
           console.error("Error creating message:", err);
-          res
+          return res
             .status(500)
             .json({ error: "An error occurred while creating message" });
-        } else {
-          // Obtener el ID del mensaje insertado
-          const messageId = result.insertId;
-
-          // Actualizar la columna last_updated_at en la tabla chats
-          const updateQuery = "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP, unread_messages_count = unread_messages_count + 1 WHERE id = ?";
-          db.query(updateQuery, [chatId], (err, result) => {
-            if (err) {
-              console.error("Error updating last_updated_at:", err);
-            }
-          });
-          res.status(200).json({
-            message: "Message created successfully",
-            messageId: messageId,
-          });
         }
+
+        // Obtener el ID del mensaje insertado
+        const messageId = result.insertId;
+
+        // Actualizar la columna last_updated_at en la tabla chats
+        const updateQuery =
+          "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP, unread_messages_count = unread_messages_count + 1 WHERE id = ?";
+        db.query(updateQuery, [chatId], (err) => {
+          if (err) {
+            console.error("Error updating last_updated_at:", err);
+          }
+        });
+
+        // Obtener los datos del chat para emitir el evento newChatNotification
+        const chatDataQuery = `
+        SELECT 
+          clients.id AS client_id, 
+          clients.username AS username, 
+          teams.name AS team_name, 
+          teams.id AS team_id,
+          chats.unread_messages_count AS unread_messages_count
+        FROM chats
+        INNER JOIN clients ON chats.client_id = clients.id
+        INNER JOIN teams ON teams.id = chats.team_id
+        WHERE chats.id = ?
+      `;
+
+        db.query(chatDataQuery, [chatId], (err, result) => {
+          if (err) {
+            console.error("Error fetching chat data:", err);
+            return res
+              .status(500)
+              .json({ error: "An error occurred while fetching chat data" });
+          }
+
+          if (result.length > 0) {
+            const chatData = result[0];
+
+            // Emitir el evento newChatNotification
+            const newChatData = {
+              id: chatId,
+              username: chatData.username,
+              team_name: chatData.team_name,
+              team_id: chatData.team_id,
+              clientId: chatData.client_id,
+              unread_messages_count: chatData.unread_messages_count,
+            };
+            const io = socket.getIO();
+            io.emit("newChatNotification", newChatData);
+
+            // Actualizar el estado online del cliente
+            if (chatData.client_id) {
+              io.emit("updateUserStatus", {
+                clientId: chatData.client_id,
+                isOnline: true,
+              });
+            }
+
+            // Respondemos al cliente con éxito
+            res.status(200).json({
+              message: "Message created successfully",
+              messageId: messageId,
+            });
+          } else {
+            res.status(404).json({ error: "Chat not found" });
+          }
+        });
       }
     );
   } catch (error) {
@@ -177,11 +236,13 @@ exports.createMessage = async (req, res) => {
 exports.getChatList = async (req, res) => {
   try {
     const adminId = req.params.id;
+    const userRole = req.query.role; // Suponiendo que el rol se pasa como un parámetro de consulta
 
     // Consultar los IDs de los equipos asociados al administrador desde la tabla user_teams
     const teamsQuery = `
       SELECT team_id FROM user_teams WHERE user_id = ?
     `;
+
     db.query(teamsQuery, [adminId], (err, teamResults) => {
       if (err) {
         console.error("Error fetching user's teams:", err);
@@ -191,18 +252,26 @@ exports.getChatList = async (req, res) => {
       } else {
         const teamIds = teamResults.map((team) => team.team_id);
 
-        // Consultar la lista de chats con la información del cliente asociado y filtrar por los IDs de equipos obtenidos
-        const query = `
+        // Construir la consulta según el rol del usuario
+        let query = `
           SELECT chats.*, clients.id AS client_id, clients.registration_date AS date, clients.username AS username, teams.id AS team_id, teams.name AS team_name 
           FROM chats 
           INNER JOIN clients ON chats.client_id = clients.id 
           INNER JOIN teams ON chats.team_id = teams.id 
-          WHERE chats.archived = 'visible' 
-          AND chats.team_id IN (?)
-          AND (chats.admin_id = ? OR chats.admin_id IS NULL)
-          ORDER BY chats.last_updated_at DESC
+          WHERE chats.archived = 'visible'
         `;
-        db.query(query, [teamIds, adminId], (err, result) => {
+
+        if (userRole === "agent") {
+          // Los agentes solo ven los chats asignados a ellos o no asignados a nadie
+          query += ` AND (chats.admin_id = ? OR chats.admin_id IS NULL)`;
+        }
+
+        query += ` AND chats.team_id IN (?) ORDER BY chats.last_updated_at DESC`;
+
+        const queryParams =
+          userRole === "agent" ? [adminId, teamIds] : [teamIds];
+
+        db.query(query, queryParams, (err, result) => {
           if (err) {
             console.error("Error fetching chat list:", err);
             res
@@ -247,36 +316,40 @@ exports.getTeamList = async (req, res) => {
 
 exports.createMessageAdmin = async (req, res) => {
   try {
-    const { chatId, sender_id, message } = req.body;
+    const { chatId, sender_id, message, sender } = req.body;
 
     // Insertar el nuevo mensaje en la base de datos
     const messageQuery =
-      "INSERT INTO messages (chat_id, sender_id, message, type) VALUES (?, ?, ?, 'text')";
-    db.query(messageQuery, [chatId, sender_id, message], (err, result) => {
-      if (err) {
-        console.error("Error creating message:", err);
-        res.status(500).json({
-          error: "An error occurred while creating message",
-        });
-      } else {
-        // Obtener el ID del mensaje insertado
-        const messageId = result.insertId;
+      "INSERT INTO messages (chat_id, sender_id, message, type, sender) VALUES (?, ?, ?, 'text', ?)";
+    db.query(
+      messageQuery,
+      [chatId, sender_id, message, sender],
+      (err, result) => {
+        if (err) {
+          console.error("Error creating message:", err);
+          res.status(500).json({
+            error: "An error occurred while creating message",
+          });
+        } else {
+          // Obtener el ID del mensaje insertado
+          const messageId = result.insertId;
 
-        // Actualizar la columna last_updated_at en la tabla chats
-        const updateQuery =
-          "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-        db.query(updateQuery, [chatId], (err, result) => {
-          if (err) {
-            console.error("Error updating last_updated_at:", err);
-          }
-        });
+          // Actualizar la columna last_updated_at en la tabla chats
+          const updateQuery =
+            "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+          db.query(updateQuery, [chatId], (err, result) => {
+            if (err) {
+              console.error("Error updating last_updated_at:", err);
+            }
+          });
 
-        res.status(200).json({
-          message: "Message created successfully",
-          messageId: messageId,
-        });
+          res.status(200).json({
+            message: "Message created successfully",
+            messageId: messageId,
+          });
+        }
       }
-    });
+    );
   } catch (error) {
     console.error("Error creating message:", error);
     res.status(500).json({ error: "An error occurred while creating message" });
@@ -288,7 +361,8 @@ exports.archiveChat = async (req, res) => {
   try {
     const { chatId } = req.body;
     const io = socket.getIO();
-    const messageQuery = "UPDATE chats SET archived = 'archived', status = 'closed' WHERE id = ?";
+    const messageQuery =
+      "UPDATE chats SET archived = 'archived', status = 'closed' WHERE id = ?";
     db.query(messageQuery, [chatId], (err, result) => {
       if (err) {
         console.error("Error archiving chat:", err);
@@ -417,7 +491,9 @@ exports.acceptChat = async (req, res) => {
     db.query(checkQuery, [id], (checkErr, checkResult) => {
       if (checkErr) {
         console.error("Error checking chat status:", checkErr);
-        return res.status(500).json({ error: "An error occurred while checking chat status" });
+        return res
+          .status(500)
+          .json({ error: "An error occurred while checking chat status" });
       }
 
       if (checkResult.length > 0 && checkResult[0].admin_id !== null) {
@@ -429,9 +505,13 @@ exports.acceptChat = async (req, res) => {
       db.query(updateQuery, [adminId, id], (updateErr, updateResult) => {
         if (updateErr) {
           console.error("Error accepting chat:", updateErr);
-          return res.status(500).json({ error: "An error occurred while accepting chat" });
+          return res
+            .status(500)
+            .json({ error: "An error occurred while accepting chat" });
         } else {
-          return res.status(200).json({ message: "Chat accepted successfully" });
+          return res
+            .status(200)
+            .json({ message: "Chat accepted successfully" });
         }
       });
     });
@@ -458,7 +538,6 @@ exports.closeChat = async (req, res) => {
           message: "chat closed successfully",
         });
       }
-      console.log(result);
     });
   } catch (error) {
     console.error("Error unarchive chat:", error);
@@ -505,7 +584,7 @@ exports.deleteChat = async (req, res) => {
 // controlador para enviar imágenes desde el administrador
 exports.uploadMessageAdmin = async (req, res) => {
   try {
-    const { chatId, sender_id, message } = req.body;
+    const { chatId, sender_id, message, sender } = req.body;
     let filePath = null;
     const io = socket.getIO();
 
@@ -527,10 +606,10 @@ exports.uploadMessageAdmin = async (req, res) => {
     const image = filePath || null;
 
     const messageQuery =
-      "INSERT INTO messages (chat_id, sender_id, message, type, image) VALUES (?, ?, ?, ?, ?)";
+      "INSERT INTO messages (chat_id, sender_id, message, type, image, sender) VALUES (?, ?, ?, ?, ?, ?)";
     db.query(
       messageQuery,
-      [chatId, sender_id, message || "", type, image],
+      [chatId, sender_id, message || "", type, image, sender],
       (err, result) => {
         if (err) {
           console.error("Error creating message:", err);
@@ -542,12 +621,12 @@ exports.uploadMessageAdmin = async (req, res) => {
           const messageId = result.insertId;
 
           const updateQuery =
-          "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-        db.query(updateQuery, [chatId], (err, result) => {
-          if (err) {
-            console.error("Error updating last_updated_at:", err);
-          }
-        });
+          "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP, unread_messages_count = unread_messages_count + 1 WHERE id = ?";
+          db.query(updateQuery, [chatId], (err, result) => {
+            if (err) {
+              console.error("Error updating last_updated_at:", err);
+            }
+          });
 
           res.status(200).json({
             message: "Message created successfully",
@@ -555,14 +634,6 @@ exports.uploadMessageAdmin = async (req, res) => {
             imageUrl: image,
           });
 
-          // Emitir un evento de socket con la información del mensaje
-          const messageData = {
-            chatId: chatId,
-            sender_id: sender_id,
-            message: message || "",
-            image: image, // Usar la URL completa aquí
-          };
-          io.emit("newMessage", messageData);
         }
       }
     );
@@ -584,7 +655,6 @@ exports.openChat = async (req, res) => {
         console.error("Error resetting unread messages count:", err);
         res.status(500).json({ error: "An error occurred while opening chat" });
       } else {
- 
         // io.emit('chatOpened', chatId);
 
         res.status(200).json({ message: "Chat opened successfully" });
@@ -593,5 +663,28 @@ exports.openChat = async (req, res) => {
   } catch (error) {
     console.error("Error opening chat:", error);
     res.status(500).json({ error: "An error occurred while opening chat" });
+  }
+};
+
+exports.getChatStatus = async (req, res) => {
+  const chatId = req.params.id;
+
+  try {
+    const query = `SELECT admin_id, status FROM chats WHERE id = ?`;
+    db.query(query, [chatId], (err, result) => {
+      if (err) {
+        console.error("Error fetching chat status:", err);
+        res.status(500).json({ error: "An error occurred while fetching chat status" });
+      } else {
+        if (result.length === 0) {
+          res.status(404).json({ error: "Chat not found" });
+        } else {
+          res.status(200).json({ status: result[0].status, admin_id: result[0].admin_id });
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching chat status:", error);
+    res.status(500).json({ error: "An error occurred while fetching chat status" });
   }
 };

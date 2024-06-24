@@ -81,6 +81,13 @@
   overflow: hidden !important;
 }
 
+.screen_chat .header_chat .content .button {
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .screen_chat .header_chat .content .button button {
   width: 40px;
   height: 40px;
@@ -240,4 +247,9 @@
     align-items: center;
     background: none;
   }
+}
+
+.close {
+  color: var(--white);
+  text-align: center;
 }

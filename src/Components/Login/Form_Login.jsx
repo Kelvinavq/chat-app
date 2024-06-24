@@ -108,7 +108,7 @@ const Form_Login = () => {
           </div>
         </div>
 
-        <div className="inputs">
+        <form onSubmit={handleLogin} className="inputs">
           <div className="input">
             <label htmlFor="email">Email</label>
             <div>
@@ -140,9 +140,9 @@ const Form_Login = () => {
           </div>
 
           <div className="input">
-            <button onClick={handleLogin}>Iniciar Sesión</button>
+            <button type="submit">Iniciar Sesión</button>
           </div>
-        </div>
+        </form>
       </div>
     </>
   );
