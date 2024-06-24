@@ -208,12 +208,12 @@ exports.createMessage = async (req, res) => {
             io.emit("newChatNotification", newChatData);
 
             // Actualizar el estado online del cliente
-            if (chatData.client_id) {
-              io.emit("updateUserStatus", {
-                clientId: chatData.client_id,
-                isOnline: true,
-              });
-            }
+            // if (chatData.client_id) {
+            //   io.emit("updateUserStatus", {
+            //     clientId: chatData.client_id,
+            //     isOnline: true,
+            //   });
+            // }
 
             // Respondemos al cliente con éxito
             res.status(200).json({
@@ -254,10 +254,11 @@ exports.getChatList = async (req, res) => {
 
         // Construir la consulta según el rol del usuario
         let query = `
-          SELECT chats.*, clients.id AS client_id, clients.registration_date AS date, clients.username AS username, teams.id AS team_id, teams.name AS team_name 
+          SELECT chats.*, clients.id AS client_id, clients.registration_date AS date, clients.username AS username, clients.status AS statusClient, teams.id AS team_id, teams.name AS team_name, devices.device_fingerprint AS deviceId 
           FROM chats 
           INNER JOIN clients ON chats.client_id = clients.id 
           INNER JOIN teams ON chats.team_id = teams.id 
+          INNER JOIN devices ON chats.client_id = devices.client_id 
           WHERE chats.archived = 'visible'
         `;
 
@@ -687,5 +688,59 @@ exports.getChatStatus = async (req, res) => {
   } catch (error) {
     console.error('Error fetching chat status:', error);
     res.status(500).json({ error: 'An error occurred while fetching chat status' });
+  }
+};
+
+
+exports.updateStatusClient = async (req, res) => {
+  try {
+    const { deviceId, status } = req.body;
+    // Buscar el clientID en la tabla devices
+    const deviceQuery = "SELECT client_id FROM devices WHERE device_fingerprint = ?";
+    db.query(deviceQuery, [deviceId], (err, result) => {
+      if (err) {
+        console.error("Error finding client ID:", err);
+        return res.status(500).json({
+          error: "An error occurred while finding client ID",
+        });
+      }
+
+      if (result.length === 0) {
+        return res.status(404).json({
+          error: `Device with ID ${deviceId} not found`,
+        });
+      }
+
+      const clientID = result[0].client_id;
+
+      console.log(status);
+
+      // Actualizar el estado del cliente en la tabla clients
+      const query = "UPDATE clients SET status =? WHERE id =?";
+      db.query(query, [status, clientID], (err, result) => {
+        if (err) {
+          console.error("Error updating status:", err);
+          return res.status(500).json({
+            error: "An error occurred while updating status",
+          });
+        }
+
+        // Verificar si se actualizó correctamente
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            error: `Client with ID ${clientID} not found`,
+          });
+        }
+
+        // Envía una respuesta de éxito
+        res.status(200).json({
+          message: "Client status updated successfully",
+        });
+      });
+    });
+
+  } catch (error) {
+    console.error("Error updating client status:", error);
+    res.status(500).json({ error: "An error occurred while updating client status" });
   }
 };

@@ -163,30 +163,6 @@ const Bubble_Chat = () => {
     };
   }, [chatId]);
 
-  useEffect(() => {
-    const handleConnect = () => {
-      socket.emit("clientStatus", { clientId: clientID, isOnline: true });
-    };
-
-    const handleDisconnect = () => {
-      socket.emit("clientStatus", { clientId: clientID, isOnline: false });
-    };
-
-    const handleBeforeUnload = () => {
-      socket.emit("clientStatus", { clientId: clientID, isOnline: false });
-    };
-
-    socket.on("connect", handleConnect);
-    socket.on("disconnect", handleDisconnect);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      socket.off("connect", handleConnect);
-      socket.off("disconnect", handleDisconnect);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [clientID]);
-
   // Función para obtener todos los mensajes de un chat activo
   const fetchChatMessages = async (chatId) => {
     try {
@@ -557,6 +533,7 @@ const Bubble_Chat = () => {
           throw new Error("Failed to save message to database");
         } else {
           const responseData = await response.json();
+          console.log("Backend response data:", responseData);
 
           const messageDataImage = {
             chatId: chat_id,
@@ -635,7 +612,7 @@ const Bubble_Chat = () => {
         socket.emit("sendMessage", { chatId, sender_id, message, timestamp });
         socket.emit("chatOpened", chatId);
         // Emitir evento para actualizar contador de mensajes no leídos
-        // socket.emit("updateUnreadCount", { chatId });
+        socket.emit("updateUnreadCount", { chatId });
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -678,6 +655,109 @@ const Bubble_Chat = () => {
       return [];
     }
   };
+
+  useEffect(() => {
+    const deviceId = localStorage.getItem("deviceId") || uuidv4();
+
+    const handleConnect = () => {
+      socket.emit("clientStatus", {
+        clientId: clientID,
+        isOnline: true,
+        deviceId: deviceId,
+      });
+    };
+
+    const handleDisconnect = () => {
+      socket.emit("clientStatus", {
+        clientId: clientID,
+        isOnline: false,
+        deviceId: deviceId,
+      });
+    };
+
+    const handleBeforeUnload = () => {
+      socket.emit("clientStatus", {
+        clientId: clientID,
+        isOnline: false,
+        deviceId: deviceId,
+      });
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [clientID]);
+
+  // useEffect(() => {
+  //   const handleConnect = async () => {
+  //     const deviceId = localStorage.getItem("deviceId") || uuidv4();
+  //     const status = "online";
+
+  //     try {
+  //       await fetch(`${Config.server_api}api/chats/${deviceId}/update-status`, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ status: status, deviceId: deviceId }),
+  //       });
+  //       socket.emit("clientStatus", { clientId: clientID, isOnline: true, deviceId:deviceId });
+  //     } catch (error) {
+  //       console.error("Error updating client status:", error);
+  //     }
+  //   };
+
+  //   const handleDisconnect = async () => {
+  //     const deviceId = localStorage.getItem("deviceId") || uuidv4();
+  //     const status = "offline";
+  //     try {
+  //       await fetch(`${Config.server_api}api/chats/${deviceId}/update-status`, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ status: status, deviceId: deviceId }),
+  //       });
+  //       socket.emit("clientStatus", { clientId: clientID, isOnline: false, deviceId: deviceId });
+  //     } catch (error) {
+  //       console.error("Error updating client status:", error);
+  //     }
+  //   };
+
+  //   const handleBeforeUnload = async () => {
+  //     const deviceId = localStorage.getItem("deviceId") || uuidv4();
+  //     const status = "offline";
+
+  //     try {
+  //       await fetch(`${Config.server_api}api/chats/${deviceId}/update-status`, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ status: status, deviceId: deviceId }),
+  //       });
+  //       socket.emit("clientStatus", { clientId: clientID, isOnline: false, deviceId: deviceId });
+  //     } catch (error) {
+  //       console.error("Error updating client status:", error);
+  //     }
+  //   };
+
+  //   socket.on("connect", handleConnect);
+  //   socket.on("disconnect", handleDisconnect);
+  //   window.addEventListener("beforeunload", handleBeforeUnload);
+
+  //   return () => {
+  //     socket.off("connect", handleConnect);
+  //     socket.off("disconnect", handleDisconnect);
+  //     window.removeEventListener("beforeunload", handleBeforeUnload);
+  //   };
+  // }, [clientID]);
 
   return (
     <>
@@ -757,7 +837,7 @@ const Bubble_Chat = () => {
                       } new`}
                     >
                       {message.message && (
-                       ReactHtmlParser(message.message)
+                        <p> {ReactHtmlParser(message.message)}</p>
                       )}
                       {message.image && (
                         <img

@@ -6,6 +6,9 @@ import Chat_a from "../../Components/Admin/Chats/Chat/Chat_a";
 import Info_Chat_a from "../../Components/Admin/Chats/Info_Chat/Info_Chat_a";
 import Config from "../../Config/Config";
 
+import io from "socket.io-client";
+const socket = io(Config.server_api);
+
 const Page_chats_a = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -24,7 +27,7 @@ const Page_chats_a = () => {
     setSelectedChat(chat);
     loadChatMessages(chat.id);
     setIsChatVisible(true);
-
+    
     // Verificar si el chat ya fue aceptado
     try {
       const response = await fetch(
@@ -42,7 +45,7 @@ const Page_chats_a = () => {
         const chatData = await response.json();
         setIsAccepted(chatData.admin_id !== null);
         setStatusChat(chatData.status === true);
-        console.log(statusChat);
+
       } else {
         console.error("Error fetching chat status:", await response.text());
       }
@@ -113,7 +116,7 @@ const Page_chats_a = () => {
           <div className={`chat_list ${isChatVisible ? "hidden" : ""}`}>
             <List_chat onChatClick={handleChatClick} />
           </div>
-          <div className={`chat_a ${isChatVisible ? "" : "hidden"}`}>
+          <div className={`chat_a ${isChatVisible ? "" : "hidden"}`}  >
             <Chat_a
               selectedChat={selectedChat}
               messages={messages}
@@ -121,10 +124,8 @@ const Page_chats_a = () => {
               acceptedChats={acceptedChats}
               setAcceptedChats={setAcceptedChats}
               onCloseChat={handleCloseChat}
-
               isAccepted={isAccepted}
               onChatAccepted={() => setIsAccepted(true)}
-
               statusChat={statusChat}
               onStatus={() => setStatusChat(true)}
             />

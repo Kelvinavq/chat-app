@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
     socket.clientId = clientId;
     onlineClients[clientId] = true;
     console.log(`Client ${clientId} is online`);
-    io.emit("updateUserStatus", { clientId, isOnline: true });
+    // io.emit("updateUserStatus", { clientId, isOnline: true });
   });
 
   socket.on("adminOnline", (adminId) => {
@@ -160,7 +160,7 @@ io.on("connection", (socket) => {
   });
 
   // Manejar el evento de estado del cliente
-  socket.on("clientStatus", ({ clientId, isOnline }) => {
+  socket.on("clientStatus", ({ clientId, isOnline, deviceId }) => {
     if (isOnline) {
       onlineClients[clientId] = socket.id;
     } else {
@@ -168,7 +168,7 @@ io.on("connection", (socket) => {
     }
 
     // Emitir el estado a todos los administradores conectados
-    io.emit("updateUserStatus", { clientId, isOnline });
+    io.emit("updateUserStatus", { clientId, isOnline, deviceId });
   });
 
   // Manejar la solicitud del estado de los clientes

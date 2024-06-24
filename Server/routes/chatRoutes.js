@@ -61,6 +61,9 @@ router.put("/open-chat/:chatId", chatController.openChat);
 // Ruta para obtener el estado del chat
 router.get('/status/:id', chatController.getChatStatus);
 
+// Ruta para actualizar el estatus online - offline del cliente
+router.post('/:deviceId/update-status', chatController.updateStatusClient);
+
 
 // Exportar las rutas
 module.exports = router;

@@ -38,8 +38,6 @@ const Chat_a = ({
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
 
-  // const [isAccepted, setIsAccepted] = useState(false);
-
   const role = localStorage.getItem("role");
 
   useEffect(() => {
@@ -98,6 +96,7 @@ const Chat_a = ({
 
   useEffect(() => {
     if (selectedChat) {
+      console.log(selectedChat);
       socket.emit("joinChat", selectedChat.id);
       setClientID(selectedChat.client_id);
 
@@ -111,7 +110,7 @@ const Chat_a = ({
     // Emitir el evento para pedir el estado actual de los clientes
     socket.emit("requestClientStatuses");
 
-    socket.on("updateUserStatus", ({ clientId, isOnline }) => {
+    socket.on("updateUserStatus", ({ clientId, isOnline, deviceId }) => {
       setClientStatuses((prevStatuses) => ({
         ...prevStatuses,
         [clientId]: isOnline,

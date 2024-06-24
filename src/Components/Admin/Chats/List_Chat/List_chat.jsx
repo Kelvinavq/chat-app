@@ -132,19 +132,25 @@ const List_chat = ({ onChatClick }) => {
 
       socket.on("newChatNotification", (chatData) => {
         if (adminTeamIds.includes(chatData.team_id)) {
+          chatData.lastMessageTime = new Date(chatData.timestamp).getTime();
           setChats((prevChats) => {
             const existingChatIndex = prevChats.findIndex(
               (chat) => chat.id === chatData.id
             );
             if (existingChatIndex !== -1) {
-              const updatedChats = [...prevChats];
-              updatedChats[existingChatIndex] = chatData;
+              const updatedChats = [
+                chatData,
+                ...prevChats.filter(
+                  (chat, index) => index !== existingChatIndex
+                ),
+              ];
               return sortChatsByTime(updatedChats);
             } else {
-              return sortChatsByTime([...prevChats, chatData]);
+              const updatedChats = [chatData, ...prevChats];
+              return sortChatsByTime(updatedChats);
             }
           });
-          // Actualizar el contador de mensajes no leídos en localStorage
+
           setUnreadMessagesCount((prevUnreadMessagesCount) => {
             const updatedCount = {
               ...prevUnreadMessagesCount,
