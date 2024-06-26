@@ -254,11 +254,10 @@ exports.getChatList = async (req, res) => {
 
         // Construir la consulta según el rol del usuario
         let query = `
-          SELECT chats.*, clients.id AS client_id, clients.registration_date AS date, clients.username AS username, clients.status AS statusClient, teams.id AS team_id, teams.name AS team_name, devices.device_fingerprint AS deviceId 
+          SELECT chats.*, clients.id AS client_id, clients.registration_date AS date, clients.username AS username, clients.status AS statusClient, teams.id AS team_id, teams.name AS team_name 
           FROM chats 
           INNER JOIN clients ON chats.client_id = clients.id 
           INNER JOIN teams ON chats.team_id = teams.id 
-          INNER JOIN devices ON chats.client_id = devices.client_id 
           WHERE chats.archived = 'visible'
         `;
 

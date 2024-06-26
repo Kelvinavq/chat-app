@@ -9,6 +9,7 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  z-index: 999999 !important;
 }
 
 .sidebar .items_top,
@@ -174,6 +175,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  z-index: 999999 !important;
 }
 
 .sidebar .items_bottom .item.notification .dropdown .noti {

@@ -25,7 +25,13 @@ class AuthController {
         return res.status(400).json({ message: "Credenciales inválidas." });
       }
 
+
       const user = userRows[0];
+
+      
+      if (user.status === "suspended") {
+        return res.status(400).json({ message: "Usuario suspendido, No puedes acceder." });
+      }
 
       // Verificar la contraseña
       const isMatch = await bcrypt.compare(password, user.password);

@@ -10,7 +10,7 @@ const socket = require("./Config/socket");
 const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // Crear el servidor HTTP
 const server = http.createServer(app);
@@ -148,7 +148,7 @@ io.on("connection", (socket) => {
 
   // Emitir evento de chat cerrado
   socket.on("chatClosed", ({ chatId }) => {
-    io.to(chatId).emit("chatClosed", { chatId });
+    io.emit("chatClosed", { chatId });
   });
 
   socket.on("chatDeleted", ({ chatId }) => {

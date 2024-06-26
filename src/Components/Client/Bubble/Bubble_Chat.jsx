@@ -8,6 +8,7 @@ import img from "../../../assets/logo.png";
 import Swal from "sweetalert2";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChatBubbleRoundedIcon from "@mui/icons-material/ChatBubbleRounded";
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import CloseIcon from "@mui/icons-material/Close";
 import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
@@ -766,7 +767,7 @@ const Bubble_Chat = () => {
           onClick={handleBubbleClick}
           className={`bubble_button ${showBubble ? "active" : ""}`}
         >
-          <ChatBubbleRoundedIcon />
+          <WhatsAppIcon />
         </button>
 
         <button

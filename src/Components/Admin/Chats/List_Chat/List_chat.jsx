@@ -169,7 +169,6 @@ const List_chat = ({ onChatClick }) => {
         setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
       });
 
- 
 
       return () => {
         socket.off("newChatNotification");
@@ -177,6 +176,7 @@ const List_chat = ({ onChatClick }) => {
         socket.off("chatOpened");
         socket.off("chatAccepted");
         socket.off("chatDeleted");
+        socket.off("chatClosed");
       };
     }
   }, [adminId, adminTeamIds]);

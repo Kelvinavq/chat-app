@@ -85,6 +85,10 @@
     transition: 0.3s;
     background: var(--primary);
   }
+
+  .swal2-container {
+    z-index: 9999 !important;
+  }
   
   .swal2-modal {
     box-shadow: 0px 0px 20px 0px #5e5bff54;
