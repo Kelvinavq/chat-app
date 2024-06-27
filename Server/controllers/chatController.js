@@ -621,7 +621,7 @@ exports.uploadMessageAdmin = async (req, res) => {
           const messageId = result.insertId;
 
           const updateQuery =
-          "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP, unread_messages_count = unread_messages_count + 1 WHERE id = ?";
+            "UPDATE chats SET last_updated_at = CURRENT_TIMESTAMP, unread_messages_count = unread_messages_count + 1 WHERE id = ?";
           db.query(updateQuery, [chatId], (err, result) => {
             if (err) {
               console.error("Error updating last_updated_at:", err);
@@ -633,7 +633,6 @@ exports.uploadMessageAdmin = async (req, res) => {
             messageId: messageId,
             imageUrl: image,
           });
-
         }
       }
     );
@@ -673,29 +672,33 @@ exports.getChatStatus = async (req, res) => {
     const query = `SELECT admin_id, status FROM chats WHERE id = ?`;
     db.query(query, [chatId], (err, result) => {
       if (err) {
-        console.error('Error fetching chat status:', err);
-        return res.status(500).json({ error: 'An error occurred while fetching chat status' });
-      } 
-      
-      if (result.length === 0) {
-        return res.status(404).json({ error: 'Chat not found' });
+        console.error("Error fetching chat status:", err);
+        return res
+          .status(500)
+          .json({ error: "An error occurred while fetching chat status" });
       }
-      
-      const isActive = result[0].status === 'active';
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: "Chat not found" });
+      }
+
+      const isActive = result[0].status === "active";
       res.status(200).json({ status: isActive, admin_id: result[0].admin_id });
     });
   } catch (error) {
-    console.error('Error fetching chat status:', error);
-    res.status(500).json({ error: 'An error occurred while fetching chat status' });
+    console.error("Error fetching chat status:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching chat status" });
   }
 };
-
 
 exports.updateStatusClient = async (req, res) => {
   try {
     const { deviceId, status } = req.body;
     // Buscar el clientID en la tabla devices
-    const deviceQuery = "SELECT client_id FROM devices WHERE device_fingerprint = ?";
+    const deviceQuery =
+      "SELECT client_id FROM devices WHERE device_fingerprint = ?";
     db.query(deviceQuery, [deviceId], (err, result) => {
       if (err) {
         console.error("Error finding client ID:", err);
@@ -737,9 +740,87 @@ exports.updateStatusClient = async (req, res) => {
         });
       });
     });
-
   } catch (error) {
     console.error("Error updating client status:", error);
-    res.status(500).json({ error: "An error occurred while updating client status" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while updating client status" });
+  }
+};
+
+// Controlador para obtener la lista de mensajes automáticos de despedida
+exports.getMessagesEnd = async (req, res) => {
+  type = "closed";
+
+  try {
+    const query = `SELECT * FROM auto_messages WHERE type = ? AND status = "active" ORDER BY id ASC`;
+    db.query(query, [type], (err, result) => {
+      if (err) {
+        console.error("Error fetching messages list:", err);
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching messages list" });
+      } else {
+        res.status(200).json({ messages_end: result });
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching messages list:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching messages list" });
+  }
+};
+
+exports.createEndMessage = async (req, res) => {
+  try {
+    const { chatId, sender_id, autoMessages, timestamp } = req.body;
+    const io = socket.getIO();
+
+    // Iniciar una transacción para garantizar que ambas consultas se ejecuten de manera atómica
+    await new Promise((resolve, reject) => {
+      db.beginTransaction(async (err) => {
+        if (err) return reject(err);
+
+        try {
+          // Crear los mensajes automáticos asociados con el chat en la base de datos
+          const autoMessagesQuery =
+            "INSERT INTO messages (chat_id, sender_id, message, created_at, sender) VALUES ?";
+          const autoMessagesValues = autoMessages.map((message) => [
+            message.chatId,
+            message.sender_id,
+            message.message,
+            message.timestamp,
+            message.sender,
+          ]);
+
+          if (autoMessagesValues.length > 0) {
+            await new Promise((resolve, reject) => {
+              db.query(autoMessagesQuery, [autoMessagesValues], (err) => {
+                if (err) return db.rollback(() => reject(err));
+                resolve();
+              });
+            });
+          }
+
+          db.commit((err) => {
+            if (err) return db.rollback(() => reject(err));
+
+            resolve({
+              message: "Messages created successfully",
+            });
+          });
+        } catch (error) {
+          db.rollback(() => reject(error));
+        }
+      });
+    });
+
+    res.status(200).json({ message: "Messages created successfully" });
+  } catch (error) {
+    console.error("Error creating messages:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while creating messages" });
   }
 };

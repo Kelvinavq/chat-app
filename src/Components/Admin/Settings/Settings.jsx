@@ -622,7 +622,7 @@ const Settings = () => {
                     <option value="">Seleccionar</option>
                     <option value="welcome">Bienvenida</option>
                     <option value="team">Por equipo</option>
-                    {/* <option value="closed">De despedida</option> */}
+                    <option value="closed">De despedida</option>
                   </select>
                 </div>
 

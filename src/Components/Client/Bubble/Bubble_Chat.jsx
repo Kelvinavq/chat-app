@@ -8,7 +8,7 @@ import img from "../../../assets/logo.png";
 import Swal from "sweetalert2";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChatBubbleRoundedIcon from "@mui/icons-material/ChatBubbleRounded";
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import CloseIcon from "@mui/icons-material/Close";
 import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
@@ -38,6 +38,7 @@ const Bubble_Chat = () => {
   const [image, setImage] = useState(null);
   const [teams, setTeams] = useState([]);
   const [isClientOnline, setIsClientOnline] = useState(false);
+  const [messagesEnd, setMessagesEnd] = useState([]);
 
   const [messageWelcome, setMessageWelcome] = useState([]);
 
@@ -47,7 +48,10 @@ const Bubble_Chat = () => {
   const endOfMessagesRef = useRef(null);
 
   const [isChatClosed, setIsChatClosed] = useState(false);
+  const [isMessageEndVisible, setIsMessageEndVisibled] = useState(false);
   const role = "user";
+  const [messagesEndList, setMessagesEndList] = useState([]);
+
 
   const resetStates = () => {
     setIsLastChatActive(false);
@@ -68,6 +72,7 @@ const Bubble_Chat = () => {
     setShowImageModal(false);
     setSelectedImageUrl(null);
     setIsChatClosed(false);
+    setIsMessageEndVisibled(false);
   };
 
   const handleCloseChat = () => {
@@ -129,30 +134,39 @@ const Bubble_Chat = () => {
       socket.emit("joinChat", chatId);
     }
 
-    socket.on("chatClosed", ({ chatId: closedChatId }) => {
+    const handleChatClosed = async ({ chatId: closedChatId }) => {
       if (chatId === closedChatId) {
-        resetStates();
-        const Toast = Swal.mixin({
-          toast: true,
-          position: "top-start",
-          showConfirmButton: false,
-          timer: 10000,
-          timerProgressBar: true,
-          didOpen: (toast) => {
-            toast.onmouseenter = Swal.stopTimer;
-            toast.onmouseleave = Swal.resumeTimer;
-          },
-        });
-        Toast.fire({
-          icon: "info",
-          title: "El chat actual ha sido cerrado",
-        });
+        try {
+          const autoMessagesEnd = await getAutoMessagesEnd();
+          // resetStates();
+          setIsMessageEndVisibled(true);
+
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "top-start",
+            showConfirmButton: false,
+            timer: 10000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            },
+          });
+
+          Toast.fire({
+            icon: "info",
+            title: "El chat actual ha sido cerrado",
+          });
+        } catch (error) {
+          console.error("Error fetching auto messages:", error);
+        }
       }
-    });
+    };
+
+    socket.on("chatClosed", handleChatClosed);
 
     socket.on("chatAccepted", ({ chatId }) => {
       console.log("chat aceptado", chatId);
-      setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
     });
 
     return () => {
@@ -657,6 +671,33 @@ const Bubble_Chat = () => {
     }
   };
 
+  const getAutoMessagesEnd = async () => {
+    try {
+      const response = await fetch(
+        `${Config.server_api}api/chats/get-message-end`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessagesEndList(data.messages_end)
+        return data.messages_end;
+      } else {
+        console.error("Failed to fetch auto messages:", response.statusText);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching auto messages:", error);
+      return [];
+    }
+  };
+
   useEffect(() => {
     const deviceId = localStorage.getItem("deviceId") || uuidv4();
 
@@ -694,71 +735,6 @@ const Bubble_Chat = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [clientID]);
-
-  // useEffect(() => {
-  //   const handleConnect = async () => {
-  //     const deviceId = localStorage.getItem("deviceId") || uuidv4();
-  //     const status = "online";
-
-  //     try {
-  //       await fetch(`${Config.server_api}api/chats/${deviceId}/update-status`, {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({ status: status, deviceId: deviceId }),
-  //       });
-  //       socket.emit("clientStatus", { clientId: clientID, isOnline: true, deviceId:deviceId });
-  //     } catch (error) {
-  //       console.error("Error updating client status:", error);
-  //     }
-  //   };
-
-  //   const handleDisconnect = async () => {
-  //     const deviceId = localStorage.getItem("deviceId") || uuidv4();
-  //     const status = "offline";
-  //     try {
-  //       await fetch(`${Config.server_api}api/chats/${deviceId}/update-status`, {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({ status: status, deviceId: deviceId }),
-  //       });
-  //       socket.emit("clientStatus", { clientId: clientID, isOnline: false, deviceId: deviceId });
-  //     } catch (error) {
-  //       console.error("Error updating client status:", error);
-  //     }
-  //   };
-
-  //   const handleBeforeUnload = async () => {
-  //     const deviceId = localStorage.getItem("deviceId") || uuidv4();
-  //     const status = "offline";
-
-  //     try {
-  //       await fetch(`${Config.server_api}api/chats/${deviceId}/update-status`, {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({ status: status, deviceId: deviceId }),
-  //       });
-  //       socket.emit("clientStatus", { clientId: clientID, isOnline: false, deviceId: deviceId });
-  //     } catch (error) {
-  //       console.error("Error updating client status:", error);
-  //     }
-  //   };
-
-  //   socket.on("connect", handleConnect);
-  //   socket.on("disconnect", handleDisconnect);
-  //   window.addEventListener("beforeunload", handleBeforeUnload);
-
-  //   return () => {
-  //     socket.off("connect", handleConnect);
-  //     socket.off("disconnect", handleDisconnect);
-  //     window.removeEventListener("beforeunload", handleBeforeUnload);
-  //   };
-  // }, [clientID]);
 
   return (
     <>
@@ -826,63 +802,94 @@ const Bubble_Chat = () => {
                 </div>
               </div>
 
-              <div className="messages">
-                {isLastChatActive && !isChatClosed ? (
-                  messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`message ${
-                        message.sender_id === clientInfo.clientInfo.id
-                          ? "message-personal"
-                          : ""
-                      } new`}
-                    >
-                      {message.message && (
-                        <p> {ReactHtmlParser(message.message)}</p>
-                      )}
-                      {message.image && (
-                        <img
-                          src={message.image}
-                          alt="Message"
-                          onClick={() => handleImageClick(message.image)}
-                        />
-                      )}
-                      <div className="timestamp">
-                        {" "}
-                        {formatMessageTime(message.created_at)}
-                      </div>
-                      {index === messages.length - 1 && (
-                        <div ref={endOfMessagesRef}></div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <>
-                    {messageWelcome.map((welcome, index) => (
-                      <div className="message new" key={index}>
-                        <figure className="avatar">
-                          <img src={img} />
-                        </figure>
-                        {ReactHtmlParser(welcome.message)}
+              {isMessageEndVisible && (
+                <>
+                  <div className="messages">
+                    {messagesEndList.map((message, index) => (
+                      <div className="message message" key={index}>
+                       {message.message && (
+                          ReactHtmlParser(message.message)
+                        )}
                       </div>
                     ))}
 
                     <div className="options">
-                      {teams.map((team) => (
-                        <button
-                          className="option message new"
-                          key={team.id}
-                          onClick={() => handleOptionClick(team.id, team.name)}
-                        >
-                          {team.name}
-                        </button>
-                      ))}
+                      <button className="option message " onClick={resetStates}>
+                        Iniciar nuevo chat
+                      </button>
                     </div>
-                  </>
-                )}
+                  </div>
+                </>
+              )}
+
+              <div className="messages">
+                {isLastChatActive && !isChatClosed && !isMessageEndVisible
+                  ? messages.map((message, index) => (
+                      <div
+                        key={index}
+                        className={`message ${
+                          message.sender_id === clientInfo.clientInfo.id
+                            ? "message-personal"
+                            : ""
+                        } new`}
+                      >
+                        {message.message && (
+                          ReactHtmlParser(message.message)
+                        )}
+                        {message.image && (
+                          <img
+                            src={message.image}
+                            alt="Message"
+                            onClick={() => handleImageClick(message.image)}
+                          />
+                        )}
+
+                        {isMessageEndVisible && (
+                          <>
+                            <button className="option message new">
+                              conversacion nueva
+                            </button>
+                          </>
+                        )}
+
+                        <div className="timestamp">
+                          {" "}
+                          {formatMessageTime(message.created_at)}
+                        </div>
+                        {index === messages.length - 1 && (
+                          <div ref={endOfMessagesRef}></div>
+                        )}
+                      </div>
+                    ))
+                  : !isMessageEndVisible && (
+                      <>
+                        {messageWelcome.map((welcome, index) => (
+                          <div className="message new" key={index}>
+                            <figure className="avatar">
+                              <img src={img} />
+                            </figure>
+                            {ReactHtmlParser(welcome.message)}
+                          </div>
+                        ))}
+
+                        <div className="options">
+                          {teams.map((team) => (
+                            <button
+                              className="option message new"
+                              key={team.id}
+                              onClick={() =>
+                                handleOptionClick(team.id, team.name)
+                              }
+                            >
+                              {team.name}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
               </div>
 
-              {isLastChatActive && !isChatClosed && (
+              {isLastChatActive && !isChatClosed && !isMessageEndVisible && (
                 <div className="message-box">
                   <div className="input">
                     <textarea

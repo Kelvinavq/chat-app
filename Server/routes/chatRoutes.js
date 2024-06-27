@@ -64,6 +64,12 @@ router.get('/status/:id', chatController.getChatStatus);
 // Ruta para actualizar el estatus online - offline del cliente
 router.post('/:deviceId/update-status', chatController.updateStatusClient);
 
+// Ruta para obtener mensajes de despedida
+router.get('/get-message-end', chatController.getMessagesEnd);
+
+// Ruta para registrar mensaje de despedida
+router.post("/messages/create-end-message", chatController.createEndMessage);
+
 
 // Exportar las rutas
 module.exports = router;

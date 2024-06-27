@@ -305,8 +305,14 @@ const Chat_a = ({
     }
   };
 
-  const handleCloseChat = (chat) => {
+  const handleCloseChat = async (chat) => {
     const chat_id = chat.id;
+    const autoMessages = await getAutoMessagesEnd();
+
+    const timestamp = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
 
     Swal.fire({
       title: "¿Estás seguro?",
@@ -317,6 +323,41 @@ const Chat_a = ({
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
+        try {
+          const response = await fetch(
+            `${Config.server_api}api/chats/messages/create-end-message`,
+            {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                autoMessages: autoMessages.map((message) => ({
+                  chatId: chat_id,
+                  sender_id: sender_id,
+                  message: message.message,
+                  timestamp: timestamp,
+                  sender: role,
+                })),
+              }),
+            }
+          );
+
+          if (response.ok) {
+            autoMessages.forEach((message) => {
+              socket.emit("sendMessage", {
+                chatId: chat_id,
+                sender_id: sender_id,
+                message: message.message,
+                timestamp: timestamp,
+              });
+            });
+          }
+        } catch (error) {
+          console.error("Error al enviar el chat:", error);
+        }
+
         try {
           const response = await fetch(
             `${Config.server_api}api/chats/close/${chat_id}`,
@@ -359,8 +400,15 @@ const Chat_a = ({
     });
   };
 
-  const handleDeleteChat = (chat) => {
+  const handleDeleteChat = async (chat) => {
     const chat_id = chat.id;
+    const autoMessages = await getAutoMessagesEnd();
+
+    const timestamp = new Date()
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
+
     Swal.fire({
       title: "¿Estás seguro?",
       text: "¡Esta acción eliminará permanentemente el historial de mensajes en este chat!",
@@ -370,6 +418,41 @@ const Chat_a = ({
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
+        try {
+          const response = await fetch(
+            `${Config.server_api}api/chats/messages/create-end-message`,
+            {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                autoMessages: autoMessages.map((message) => ({
+                  chatId: chat_id,
+                  sender_id: sender_id,
+                  message: message.message,
+                  timestamp: timestamp,
+                  sender: role,
+                })),
+              }),
+            }
+          );
+
+          if (response.ok) {
+            autoMessages.forEach((message) => {
+              socket.emit("sendMessage", {
+                chatId: chat_id,
+                sender_id: sender_id,
+                message: message.message,
+                timestamp: timestamp,
+              });
+            });
+          }
+        } catch (error) {
+          console.error("Error al enviar el chat:", error);
+        }
+
         try {
           const response = await fetch(
             `${Config.server_api}api/chats/delete/${chat_id}`,
@@ -479,6 +562,32 @@ const Chat_a = ({
 
   const closeChat = () => {
     onCloseChat();
+  };
+
+  const getAutoMessagesEnd = async () => {
+    try {
+      const response = await fetch(
+        `${Config.server_api}api/chats/get-message-end`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.messages_end;
+      } else {
+        console.error("Failed to fetch auto messages:", response.statusText);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching auto messages:", error);
+      return [];
+    }
   };
 
   return (
