@@ -736,6 +736,13 @@ const Bubble_Chat = () => {
     };
   }, [clientID]);
 
+  const formatTime = (datetime) => {
+    const date = new Date(datetime);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
   return (
     <>
       <div className={`bubble`}>
@@ -854,7 +861,7 @@ const Bubble_Chat = () => {
 
                         <div className="timestamp">
                           {" "}
-                          {formatMessageTime(message.created_at)}
+                          {formatTime(message.created_at)}
                         </div>
                         {index === messages.length - 1 && (
                           <div ref={endOfMessagesRef}></div>

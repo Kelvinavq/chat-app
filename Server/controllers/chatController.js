@@ -59,7 +59,7 @@ exports.createChat = async (req, res) => {
 
           // Obtener el username del cliente y el nombre del equipo
           const chatDataQuery = `
-          SELECT clients.id AS client_id, clients.username AS username, teams.name AS team_name, teams.id as team_id, chats.unread_messages_count
+          SELECT clients.id AS client_id, clients.username AS username, teams.name AS team_name, teams.id as team_id, chats.unread_messages_count, chats.last_updated_at
           FROM clients 
           INNER JOIN teams ON teams.id = ?
           INNER JOIN chats ON chats.id = ?
@@ -91,6 +91,7 @@ exports.createChat = async (req, res) => {
               team_id: chatData.team_id,
               clientId: chatData.client_id,
               unread_messages_count: chatData.unread_messages_count,
+              last_updated_at: chatData.last_updated_at
             };
             io.emit("newChatNotification", newChatData);
             // Actualizar el estado online del cliente
@@ -177,7 +178,8 @@ exports.createMessage = async (req, res) => {
           clients.username AS username, 
           teams.name AS team_name, 
           teams.id AS team_id,
-          chats.unread_messages_count AS unread_messages_count
+          chats.unread_messages_count AS unread_messages_count,
+          chats.last_updated_at
         FROM chats
         INNER JOIN clients ON chats.client_id = clients.id
         INNER JOIN teams ON teams.id = chats.team_id
@@ -203,6 +205,7 @@ exports.createMessage = async (req, res) => {
               team_id: chatData.team_id,
               clientId: chatData.client_id,
               unread_messages_count: chatData.unread_messages_count,
+              last_updated_at: chatData.last_updated_at
             };
             const io = socket.getIO();
             io.emit("newChatNotification", newChatData);

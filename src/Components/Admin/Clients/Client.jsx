@@ -65,8 +65,7 @@ const Client = () => {
 
   const filteredClients = clients.filter(
     (client) =>
-      client.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase())
+      client.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOptionClick = async (option, cliente) => {

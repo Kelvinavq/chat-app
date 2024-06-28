@@ -22,6 +22,8 @@ const List_chat = ({ onChatClick }) => {
   const adminId = localStorage.getItem("adminId");
   const role = localStorage.getItem("role");
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   // Cargar el estado inicial de unreadMessagesCount desde localStorage
   useEffect(() => {
     const storedUnreadMessagesCount = localStorage.getItem(
@@ -169,7 +171,6 @@ const List_chat = ({ onChatClick }) => {
         setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
       });
 
-
       return () => {
         socket.off("newChatNotification");
         socket.off("newMessage");
@@ -196,7 +197,6 @@ const List_chat = ({ onChatClick }) => {
 
   const handleChatClick = async (chatId) => {
     try {
-      
       const response = await fetch(
         `${Config.server_api}api/chats/open-chat/${chatId.id}`,
         {
@@ -285,9 +285,9 @@ const List_chat = ({ onChatClick }) => {
     const autoMessages = await getAutoMessagesEnd();
 
     const timestamp = new Date()
-    .toISOString()
-    .replace("T", " ")
-    .substring(0, 19);
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
 
     Swal.fire({
       title: "¿Estás seguro?",
@@ -298,7 +298,6 @@ const List_chat = ({ onChatClick }) => {
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
-
         try {
           const response = await fetch(
             `${Config.server_api}api/chats/messages/create-end-message`,
@@ -320,7 +319,7 @@ const List_chat = ({ onChatClick }) => {
             }
           );
 
-          if(response.ok){
+          if (response.ok) {
             autoMessages.forEach((message) => {
               socket.emit("sendMessage", {
                 chatId: chat_id,
@@ -380,10 +379,9 @@ const List_chat = ({ onChatClick }) => {
     const autoMessages = await getAutoMessagesEnd();
 
     const timestamp = new Date()
-    .toISOString()
-    .replace("T", " ")
-    .substring(0, 19); 
-
+      .toISOString()
+      .replace("T", " ")
+      .substring(0, 19);
 
     Swal.fire({
       title: "¿Estás seguro?",
@@ -394,7 +392,6 @@ const List_chat = ({ onChatClick }) => {
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
-
         try {
           const response = await fetch(
             `${Config.server_api}api/chats/messages/create-end-message`,
@@ -416,7 +413,7 @@ const List_chat = ({ onChatClick }) => {
             }
           );
 
-          if(response.ok){
+          if (response.ok) {
             autoMessages.forEach((message) => {
               socket.emit("sendMessage", {
                 chatId: chat_id,
@@ -498,31 +495,68 @@ const List_chat = ({ onChatClick }) => {
     ? chats.filter((chat) => chat.unread_messages_count > 0)
     : chats;
 
-    const getAutoMessagesEnd = async () => {
-      try {
-        const response = await fetch(
-          `${Config.server_api}api/chats/get-message-end`,
-          {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-  
-        if (response.ok) {
-          const data = await response.json();
-          return data.messages_end;
-        } else {
-          console.error("Failed to fetch auto messages:", response.statusText);
-          return [];
+  const getAutoMessagesEnd = async () => {
+    try {
+      const response = await fetch(
+        `${Config.server_api}api/chats/get-message-end`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      } catch (error) {
-        console.error("Error fetching auto messages:", error);
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.messages_end;
+      } else {
+        console.error("Failed to fetch auto messages:", response.statusText);
         return [];
       }
-    };
+    } catch (error) {
+      console.error("Error fetching auto messages:", error);
+      return [];
+    }
+  };
+
+  const formatDateTime = (datetime) => {
+    const date = new Date(datetime);
+    const today = new Date();
+
+    const isToday = date.toDateString() === today.toDateString();
+
+    if (isToday) {
+      const hours = date.getHours().toString().padStart(2, "0");
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      return `${hours}:${minutes}`;
+    } else {
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const filteredChatsSearch = chats.filter((chat) => {
+    if (filterUnread && chat.unread_messages_count === 0) {
+      return false;
+    }
+    if (searchTerm) {
+      const normalizedSearchTerm = searchTerm.toLowerCase();
+      const normalizedUsername = chat.username.toLowerCase();
+      return normalizedUsername.includes(normalizedSearchTerm);
+    }
+    return true;
+  });
+
+  const filteredSortedChats = sortChatsByTime(filteredChatsSearch);
+
 
   return (
     <>
@@ -541,27 +575,41 @@ const List_chat = ({ onChatClick }) => {
           </button>
         </div>
 
+        <div className="search">
+          <input type="search" name="search" id="search" placeholder="Buscar cliente" value={searchTerm}
+          onChange={handleSearchChange} />
+        </div>
+
         <div className="items">
-          {sortChatsByTime(filteredChats).map((chat) => (
-          <div
-          key={chat.id}
-          className={`item ${
-            selectedChatId === chat.id ? "selected" : ""
-          } ${chat.status}`}
-          onClick={() => handleChatClick(chat)}
-        >
+          {sortChatsByTime(filteredSortedChats).map((chat) => (
+            <div
+              key={chat.id}
+              className={`item ${
+                selectedChatId === chat.id ? "selected" : ""
+              } ${chat.status}`}
+              onClick={() => handleChatClick(chat)}
+            >
               <div className="content_text">
                 <div className="img">
                   <img src={img} alt="" />
                 </div>
                 <div className="content">
-                  <h4>{chat.username}</h4>
+
+                  <div className="name">
+                  <h4>{chat.username} </h4>
                   <p>{chat.team_name}</p>
+                  </div>
                   {unreadMessagesCount[chat.id] > 0 && (
                     <span className="unread-count">
                       {unreadMessagesCount[chat.id]}
                     </span>
                   )}
+
+                  <span className="hora">
+                    {formatDateTime(chat.last_updated_at)}
+                  </span>
+
+                
                 </div>
               </div>
 
@@ -570,16 +618,12 @@ const List_chat = ({ onChatClick }) => {
                   options={[
                     { label: "Finalizar chat", value: "cerrar" },
                     { label: "Borrar chat", value: "borrar" },
-                    { label: "Archivar", value: "archivar" },
                   ]}
                   onOptionClick={(option) => handleOptionClick(option, chat.id)}
                 />
               ) : (
                 <DropdownMenu
-                  options={[
-                    { label: "Finalizar chat", value: "cerrar" },
-                    { label: "Archivar", value: "archivar" },
-                  ]}
+                  options={[{ label: "Finalizar chat", value: "cerrar" }]}
                   onOptionClick={(option) => handleOptionClick(option, chat.id)}
                 />
               )}
